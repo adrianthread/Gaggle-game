@@ -83,10 +83,15 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
   }
 });
 
-// ==== MODALS ====
-document.getElementById('closeModal').onclick = () => resultModal.classList.add('hidden');
-document.getElementById('closeLb').onclick = () => lbModal.classList.add('hidden');
-
+// ==== MODALS (Fixed for mobile) ====
+document.body.addEventListener('click', (e) => {
+  if (e.target.id === 'closeModal' || e.target.closest('#closeModal')) {
+    resultModal.classList.add('hidden');
+  }
+  if (e.target.id === 'closeLb' || e.target.closest('#closeLb')) {
+    lbModal.classList.add('hidden');
+  }
+});
 document.getElementById('shareBtn').onclick = () => {
   const text = `I got ${document.getElementById('scoreDisplay').textContent} in Gaggle! Play now: ${location.href}`;
   if (navigator.share) {
