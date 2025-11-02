@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gaggle – Funny Collective Nouns</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Gaggle – Funny Collective Nouns</h1>
+    <button id="drawBtn" class="big-btn">Draw Cards</button>
+
+    <div id="cardArea" class="cards"></div>
+
+    <div id="prompt" class="prompt hidden"></div>
+
+    <div class="answer-box">
+      <input type="text" id="answerInput" placeholder="Your clever collective noun…" />
+      <button id="submitBtn" class="big-btn">Submit Answer</button>
+    </div>
+
+    <div class="footer">
+      <button id="leaderboardBtn" class="small-btn">Leaderboard</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>AI Judge Says:</h3>
+        <p id="scoreDisplay"></p>
+        <p id="commentDisplay" class="italic"></p>
+        <p id="punDisplay"><strong>Punback:</strong> <span></span></p>
+        <button id="closeModal" class="small-btn">Close</button>
+        <button id="shareBtn" class="small-btn">Share Score</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboardModal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Hall of Fame</h3>
+        <ol id="lbList"></ol>
+        <button id="closeLb" class="small-btn">Close</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
