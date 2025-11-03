@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
   promptEl = document.getElementById('prompt');
   answerInput = document.getElementById('answerInput');
   resultModal = document.getElementById('resultModal');
-  lbModal = document.getElementById('leaderboardModal');
 
   document.addEventListener('click', (e) => {
     if (e.target.id === 'drawBtn') {
@@ -116,16 +115,5 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (e.target.id === 'leaderboardBtn') {
-      const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
-      const list = document.getElementById('lbList');
-      if (lb.length === 0) {
-        list.innerHTML = '<li><em>No scores yet — be the first!</em></li>';
-      } else {
-        const lbHtml = lb.slice(0, 10).map(e => `<li><strong>${e.score}/10</strong> – ${e.answer}</li>`).join('');
-        list.innerHTML = lbHtml; // Safer concat
-      }
-      lbModal.classList.remove('hidden');
-    }
   });
 });
