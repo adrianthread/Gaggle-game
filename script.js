@@ -15,7 +15,7 @@ const randomDecks = (min=1, max=3) => {
 };
 
 // ==== ELEMENTS ====
-let cardArea, promptEl, answerInput, resultModal, lbModal;
+let cardArea, promptEl, answerInput, resultModal;
 
 // ==== DRAW CARDS ====
 function drawCards() {
@@ -28,7 +28,9 @@ function drawCards() {
 }
 
 function renderCards(cards) {
-  cardArea.innerHTML = ''; // Safe: empty string
+  while (cardArea.firstChild) {
+    cardArea.removeChild(cardArea.firstChild);
+  }
   cards.forEach(c => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -38,26 +40,29 @@ function renderCards(cards) {
 
     const cardFront = document.createElement('div');
     cardFront.className = 'card-front';
-    cardFront.innerHTML = `${c.icon}<br><small>${c.deckName}</small>`; // Minimal template
+    cardFront.innerHTML = c.icon + '<br><small>' + c.deckName + '</small>';
 
     const cardBack = document.createElement('div');
     cardBack.className = 'card-back';
-    cardBack.textContent = c.word; // textContent safer than innerHTML
+    cardBack.textContent = c.word;
 
     cardInner.appendChild(cardFront);
     cardInner.appendChild(cardBack);
     card.appendChild(cardInner);
     cardArea.appendChild(card);
 
-    setTimeout(() => { card.classList.add('flipped'); }, 300);
+    // Eval-free flip (use requestAnimationFrame)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => card.classList.add('flipped'));
+    });
   });
 
   const words = cards.map(c => c.word).join(' ');
-  promptEl.textContent = `What do you call a gaggle of: ${words}?`;
+  promptEl.textContent = 'What do you call a gaggle of: ' + words + '?';
   promptEl.classList.remove('hidden');
 }
 
-// ==== DOM READY - EVENT DELEGATION ====
+// ==== DOM READY ====
 document.addEventListener('DOMContentLoaded', () => {
   cardArea = document.getElementById('cardArea');
   promptEl = document.getElementById('prompt');
@@ -82,15 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
       })
         .then(res => res.json())
         .then(data => {
-          document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
+          document.getElementById('scoreDisplay').textContent = 'Score: ' + data.score + '/10';
           document.getElementById('commentDisplay').textContent = data.comment;
           document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
           resultModal.classList.remove('hidden');
 
-          const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
-          lb.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
-          lb.sort((a, b) => b.score - a.score);
-          localStorage.setItem('gaggle_lb', JSON.stringify(lb.slice(0, 50)));
+          // Save score (local only, no leaderboard)
+          const scores = JSON.parse(localStorage.getItem('gaggle_scores') || '[]');
+          scores.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
+          localStorage.setItem('gaggle_scores', JSON.stringify(scores.slice(-10))); // Top 10
 
           answerInput.value = '';
         })
@@ -101,19 +106,14 @@ document.addEventListener('DOMContentLoaded', () => {
       resultModal.classList.add('hidden');
     }
 
-    if (e.target.id === 'closeLb') {
-      lbModal.classList.add('hidden');
-    }
-
     if (e.target.id === 'shareBtn') {
       const scoreText = document.getElementById('scoreDisplay').textContent;
-      const text = `I got ${scoreText} in Gaggle! Play: ${location.href}`;
+      const text = 'I got ' + scoreText + ' in Gaggle! Play: ' + location.href;
       if (navigator.share) {
         navigator.share({ text });
       } else {
         navigator.clipboard.writeText(text).then(() => alert('Score copied!'));
       }
     }
-
   });
 });
