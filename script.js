@@ -50,68 +50,75 @@ function renderCards(cards) {
   promptEl.classList.remove('hidden');
 }
 
-// ==== SUBMIT ANSWER ====
-document.getElementById('submitBtn').addEventListener('click', async () => {
-  const answer = answerInput.value.trim();
-  if (!answer) return alert('Type something funny!');
+// ==== DOM READY - ALL EVENT LISTENERS ====
+document.addEventListener('DOMContentLoaded', () => {
+  const drawBtn = document.getElementById('drawBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  const leaderboardBtn = document.getElementById('leaderboardBtn');
+  const closeModal = document.getElementById('closeModal');
+  const closeLb = document.getElementById('closeLb');
+  const shareBtn = document.getElementById('shareBtn');
 
-  const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
+  // DRAW CARDS
+  drawBtn.addEventListener('click', () => {
+    const cards = drawCards();
+    renderCards(cards);
+  });
 
-  try {
-    const res = await fetch('/api/score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cards, answer })
-    });
-    const data = await res.json();
+  // SUBMIT ANSWER
+  submitBtn.addEventListener('click', async () => {
+    const answer = answerInput.value.trim();
+    if (!answer) return alert('Type something funny!');
 
-    // Show result
-    document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
-    document.getElementById('commentDisplay').textContent = data.comment;
-    document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
-    resultModal.classList.remove('hidden');
+    const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
-    // Save to leaderboard
+    try {
+      const res = await fetch('/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards, answer })
+      });
+      const data = await res.json();
+
+      document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
+      document.getElementById('commentDisplay').textContent = data.comment;
+      document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
+      resultModal.classList.remove('hidden');
+
+      // Save to leaderboard
+      const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
+      lb.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
+      lb.sort((a, b) => b.score - a.score);
+      localStorage.setItem('gaggle_lb', JSON.stringify(lb.slice(0, 50)));
+
+      answerInput.value = '';
+    } catch (err) {
+      alert('AI is thinking... try again!');
+    }
+  });
+
+  // CLOSE MODALS
+  closeModal.addEventListener('click', () => resultModal.classList.add('hidden'));
+  closeLb.addEventListener('click', () => lbModal.classList.add('hidden'));
+
+  // SHARE
+  shareBtn.addEventListener('click', () => {
+    const text = `I got ${document.getElementById('scoreDisplay').textContent} in Gaggle! Play: ${location.href}`;
+    if (navigator.share) {
+      navigator.share({ text });
+    } else {
+      navigator.clipboard.writeText(text);
+      alert('Score copied to clipboard!');
+    }
+  });
+
+  // LEADERBOARD
+  leaderboardBtn.addEventListener('click', () => {
     const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
-    lb.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
-    lb.sort((a,b) => b.score - a.score);
-    localStorage.setItem('gaggle_lb', JSON.stringify(lb.slice(0,50)));
-
-    answerInput.value = '';
-  } catch (err) {
-    alert('AI is on coffee break. Try again!');
-  }
-});
-
-// ==== MODALS (Fixed for mobile) ====
-document.body.addEventListener('click', (e) => {
-  if (e.target.id === 'closeModal' || e.target.closest('#closeModal')) {
-    resultModal.classList.add('hidden');
-  }
-  if (e.target.id === 'closeLb' || e.target.closest('#closeLb')) {
-    lbModal.classList.add('hidden');
-  }
-});
-document.getElementById('shareBtn').onclick = () => {
-  const text = `I got ${document.getElementById('scoreDisplay').textContent} in Gaggle! Play now: ${location.href}`;
-  if (navigator.share) {
-    navigator.share({ text });
-  } else {
-    navigator.clipboard.writeText(text);
-    alert('Score copied to clipboard!');
-  }
-};
-
-// ==== LEADERBOARD ====
-document.getElementById('leaderboardBtn').onclick = () => {
-  const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
-  const list = document.getElementById('lbList');
-  list.innerHTML = lb.slice(0,10).map(e => `<li><strong>${e.score}/10</strong> – ${e.answer}</li>`).join('');
-  lbModal.classList.remove('hidden');
-};
-
-// ==== DRAW ON LOAD ====
-document.getElementById('drawBtn').addEventListener('click', () => {
-  const cards = drawCards();
-  renderCards(cards);
+    const list = document.getElementById('lbList');
+    list.innerHTML = lb.length === 0
+      ? '<li><em>No scores yet — be the first!</em></li>'
+      : lb.slice(0, 10).map(e => `<li><strong>${e.score}/10</strong> – ${e.answer}</li>`).join('');
+    lbModal.classList.remove('hidden');
+  });
 });
