@@ -14,9 +14,10 @@ const randomDecks = (min=1, max=3) => {
   return keys.sort(() => 0.5 - Math.random()).slice(0, count);
 };
 
-// ==== ELEMENTS (Safe grabs after DOM ready) ====
+// ==== ELEMENTS ====
 let cardArea, promptEl, answerInput, resultModal, lbModal;
 
+// ==== DRAW CARDS ====
 function drawCards() {
   const chosenKeys = randomDecks();
   const cards = chosenKeys.map(key => {
@@ -27,17 +28,28 @@ function drawCards() {
 }
 
 function renderCards(cards) {
-  cardArea.innerHTML = '';
+  cardArea.innerHTML = ''; // Safe: empty string
   cards.forEach(c => {
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `
-      <div class="card-inner">
-        <div class="card-front">${c.icon}<br><small>${c.deckName}</small></div>
-        <div class="card-back">${c.word}</div>
-      </div>`;
+
+    const cardInner = document.createElement('div');
+    cardInner.className = 'card-inner';
+
+    const cardFront = document.createElement('div');
+    cardFront.className = 'card-front';
+    cardFront.innerHTML = `${c.icon}<br><small>${c.deckName}</small>`; // Minimal template
+
+    const cardBack = document.createElement('div');
+    cardBack.className = 'card-back';
+    cardBack.textContent = c.word; // textContent safer than innerHTML
+
+    cardInner.appendChild(cardFront);
+    cardInner.appendChild(cardBack);
+    card.appendChild(cardInner);
     cardArea.appendChild(card);
-    setTimeout(() => card.classList.add('flipped'), 300);
+
+    setTimeout(() => { card.classList.add('flipped'); }, 300);
   });
 
   const words = cards.map(c => c.word).join(' ');
@@ -45,24 +57,20 @@ function renderCards(cards) {
   promptEl.classList.remove('hidden');
 }
 
-// ==== DOM READY - SAFE EVENT DELEGATION ====
+// ==== DOM READY - EVENT DELEGATION ====
 document.addEventListener('DOMContentLoaded', () => {
-  // Grab elements safely
   cardArea = document.getElementById('cardArea');
   promptEl = document.getElementById('prompt');
   answerInput = document.getElementById('answerInput');
   resultModal = document.getElementById('resultModal');
   lbModal = document.getElementById('leaderboardModal');
 
-  // DELEGATE ALL CLICKS (Bulletproof for modals)
   document.addEventListener('click', (e) => {
-    // Draw Cards
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
       renderCards(cards);
     }
 
-    // Submit Answer
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
@@ -80,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
           resultModal.classList.remove('hidden');
 
-          // Save to leaderboard
           const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
           lb.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
           lb.sort((a, b) => b.score - a.score);
@@ -91,35 +98,33 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => alert('AI is thinking... try again!'));
     }
 
-    // Close Result Modal
     if (e.target.id === 'closeModal') {
       resultModal.classList.add('hidden');
     }
 
-    // Close Leaderboard Modal
     if (e.target.id === 'closeLb') {
       lbModal.classList.add('hidden');
     }
 
-    // Share
     if (e.target.id === 'shareBtn') {
       const scoreText = document.getElementById('scoreDisplay').textContent;
       const text = `I got ${scoreText} in Gaggle! Play: ${location.href}`;
       if (navigator.share) {
         navigator.share({ text });
       } else {
-        navigator.clipboard.writeText(text);
-        alert('Score copied to clipboard!');
+        navigator.clipboard.writeText(text).then(() => alert('Score copied!'));
       }
     }
 
-    // Leaderboard
     if (e.target.id === 'leaderboardBtn') {
       const lb = JSON.parse(localStorage.getItem('gaggle_lb') || '[]');
       const list = document.getElementById('lbList');
-      list.innerHTML = lb.length === 0
-        ? '<li><em>No scores yet — be the first!</em></li>'
-        : lb.slice(0, 10).map(e => `<li><strong>${e.score}/10</strong> – ${e.answer}</li>`).join('');
+      if (lb.length === 0) {
+        list.innerHTML = '<li><em>No scores yet — be the first!</em></li>';
+      } else {
+        const lbHtml = lb.slice(0, 10).map(e => `<li><strong>${e.score}/10</strong> – ${e.answer}</li>`).join('');
+        list.innerHTML = lbHtml; // Safer concat
+      }
       lbModal.classList.remove('hidden');
     }
   });
