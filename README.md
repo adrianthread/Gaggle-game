@@ -1,4 +1,4 @@
-# Gaggle-game
+# Gaggle-game is sweet as
 # Gaggle – AI-Powered Collective Noun Game
 
 ## Deploy in 2 minutes
