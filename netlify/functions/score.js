@@ -46,22 +46,39 @@ PUN: [AI pun]`;
     }
 
     const data = await response.json();
-    const text = data.content[0].text;
+    const text = data.content[0].text.trim();
 
-    const score = text.match(/SCORE: (\d+)\/10/)?.[1] || '5';
-    const comment = text.match(/COMMENT: (.*)/)?.[1] || 'Nice try!';
-    const pun = text.match(/PUN: (.*)/)?.[1] || 'No pun intended.';
+    // === ROBUST PARSING ===
+    let score = 5;
+    let comment = "Not bad, but I've seen better!";
+    let pun = "No pun in ten did!";
+
+    // Extract score
+    const scoreMatch = text.match(/SCORE:\s*(\d+)/i);
+    if (scoreMatch) score = parseInt(scoreMatch[1]);
+
+    // Extract comment
+    const commentMatch = text.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is);
+    if (commentMatch) comment = commentMatch[1].trim();
+
+    // Extract pun
+    const punMatch = text.match(/PUN:\s*(.+)/is);
+    if (punMatch) pun = punMatch[1].trim();
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score: parseInt(score), comment, pun })
+      body: JSON.stringify({ score, comment, pun })
     };
   } catch (err) {
     console.error('AI Error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'AI failed to laugh' })
+      body: JSON.stringify({ 
+        score: 1, 
+        comment: "AI had a brain fart.", 
+        pun: "Error 404: Pun not found." 
+      })
     };
   }
 };
