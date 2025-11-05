@@ -28,9 +28,7 @@ function drawCards() {
 }
 
 function renderCards(cards) {
-  while (cardArea.firstChild) {
-    cardArea.removeChild(cardArea.firstChild);
-  }
+  cardArea.innerHTML = ''; // OK to clear
   cards.forEach(c => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -40,7 +38,17 @@ function renderCards(cards) {
 
     const cardFront = document.createElement('div');
     cardFront.className = 'card-front';
-    cardFront.innerHTML = c.icon + '<br><small>' + c.deckName + '</small>';
+
+    const iconSpan = document.createElement('div');
+    iconSpan.textContent = c.icon;
+    iconSpan.style.fontSize = '2.5rem';
+    iconSpan.style.marginBottom = '0.5rem';
+
+    const label = document.createElement('small');
+    label.textContent = c.deckName;
+
+    cardFront.appendChild(iconSpan);
+    cardFront.appendChild(label);
 
     const cardBack = document.createElement('div');
     cardBack.className = 'card-back';
@@ -51,11 +59,15 @@ function renderCards(cards) {
     card.appendChild(cardInner);
     cardArea.appendChild(card);
 
-    // Eval-free flip (use requestAnimationFrame)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => card.classList.add('flipped'));
     });
   });
+
+  const words = cards.map(c => c.word).join(' ');
+  promptEl.textContent = `What do you call a gaggle of: ${words}?`;
+  promptEl.classList.remove('hidden');
+}
 
   const words = cards.map(c => c.word).join(' ');
   promptEl.textContent = 'What do you call a gaggle of: ' + words + '?';
