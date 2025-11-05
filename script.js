@@ -110,10 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (e.target.id === 'closeModal') {
+      e.stopPropagation();
       resultModal.classList.add('hidden');
     }
 
     if (e.target.id === 'shareBtn') {
+      e.stopPropagation();
       const scoreText = document.getElementById('scoreDisplay').textContent;
       const text = 'I got ' + scoreText + ' in Gaggle! Play: ' + location.href;
       if (navigator.share) {
