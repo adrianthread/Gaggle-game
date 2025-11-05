@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!answer) return alert('Type something funny!');
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
-      fetch(''/.netlify/functions/score', {
+      fetch('/.netlify/functions/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cards, answer })
