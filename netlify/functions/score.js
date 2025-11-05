@@ -1,0 +1,67 @@
+const fetch = require('node-fetch');
+
+exports.handler = async (event, context) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method not allowed' };
+  }
+
+  const { cards, answer } = JSON.parse(event.body);
+  if (!cards || !answer) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Missing data' }) };
+  }
+
+  const prompt = `You are a witty game show host for "Gaggle".
+
+Cards drawn: ${cards.join(', ')}  
+Player answer: "${answer}"
+
+Rate the answer on a scale of 1–10 for relevance, wordplay, absurdity, cleverness.
+Give:
+- A single score (average of above)
+- 1-sentence funny commentary
+- 1 punny comeback as the AI host
+
+Format exactly:
+SCORE: X/10
+COMMENT: [funny line]
+PUN: [AI pun]`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 200,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content[0].text;
+
+    const score = text.match(/SCORE: (\d+)\/10/)?.[1] || '5';
+    const comment = text.match(/COMMENT: (.*)/)?.[1] || 'Nice try!';
+    const pun = text.match(/PUN: (.*)/)?.[1] || 'No pun intended.';
+
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score: parseInt(score), comment, pun })
+    };
+  } catch (err) {
+    console.error('AI Error:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'AI failed to laugh' })
+    };
+  }
+};
