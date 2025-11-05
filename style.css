@@ -1,14 +1,14 @@
 /* Reset & Fonts */
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Roboto', system-ui, sans-serif;
   background: linear-gradient(135deg, #ff9a9e, #fad0c4);
   color: #333;
   min-height: 100vh;
   padding: 2rem 1rem;
 }
 h1 {
-  font-family: 'Bangers', cursive;
+  font-family: 'Bangers', cursive, system-ui;
   font-size: 3rem;
   text-align: center;
   color: #fff;
