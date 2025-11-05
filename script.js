@@ -28,7 +28,7 @@ function drawCards() {
 }
 
 function renderCards(cards) {
-  cardArea.innerHTML = ''; // OK to clear
+  cardArea.innerHTML = ''; // Safe to clear
   cards.forEach(c => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -76,15 +76,26 @@ document.addEventListener('DOMContentLoaded', () => {
   answerInput = document.getElementById('answerInput');
   resultModal = document.getElementById('resultModal');
 
+  // === CLOSE MODAL ON BACKGROUND CLICK ===
+  resultModal.addEventListener('click', (e) => {
+    if (e.target === resultModal) {
+      resultModal.classList.add('hidden');
+    }
+  });
+
+  // === MAIN CLICK HANDLER ===
   document.addEventListener('click', (e) => {
+    // Draw Cards
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
       renderCards(cards);
     }
 
+    // Submit Answer
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
+
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
       fetch('/.netlify/functions/score', {
@@ -94,34 +105,33 @@ document.addEventListener('DOMContentLoaded', () => {
       })
         .then(res => res.json())
         .then(data => {
-          document.getElementById('scoreDisplay').textContent = 'Score: ' + data.score + '/10';
+          document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
           document.getElementById('commentDisplay').textContent = data.comment;
           document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
           resultModal.classList.remove('hidden');
-
-          // Save score (local only, no leaderboard)
-          const scores = JSON.parse(localStorage.getItem('gaggle_scores') || '[]');
-          scores.push({ answer, score: data.score, date: new Date().toLocaleDateString() });
-          localStorage.setItem('gaggle_scores', JSON.stringify(scores.slice(-10))); // Top 10
-
           answerInput.value = '';
         })
-        .catch(err => alert('AI is thinking... try again!'));
+        .catch(err => {
+          console.error('AI Error:', err);
+          alert('AI is thinking... try again!');
+        });
     }
 
+    // Close Button
     if (e.target.id === 'closeModal') {
       e.stopPropagation();
       resultModal.classList.add('hidden');
     }
 
+    // Share Button
     if (e.target.id === 'shareBtn') {
       e.stopPropagation();
       const scoreText = document.getElementById('scoreDisplay').textContent;
-      const text = 'I got ' + scoreText + ' in Gaggle! Play: ' + location.href;
+      const text = `I got ${scoreText} in Gaggle! Play: ${location.href}`;
       if (navigator.share) {
-        navigator.share({ text });
+        navigator.share({ text }).catch(() => {});
       } else {
-        navigator.clipboard.writeText(text).then(() => alert('Score copied!'));
+        navigator.clipboard.writeText(text).then(() => alert('Score copied to clipboard!'));
       }
     }
   });
