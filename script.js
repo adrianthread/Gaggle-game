@@ -69,11 +69,6 @@ function renderCards(cards) {
   promptEl.classList.remove('hidden');
 }
 
-  const words = cards.map(c => c.word).join(' ');
-  promptEl.textContent = 'What do you call a gaggle of: ' + words + '?';
-  promptEl.classList.remove('hidden');
-}
-
 // ==== DOM READY ====
 document.addEventListener('DOMContentLoaded', () => {
   cardArea = document.getElementById('cardArea');
