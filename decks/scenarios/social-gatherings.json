@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Cocktail party", "Dinner party", "Housewarming party", "Costume party", "Pool party", "BBQ party",
     "Game night", "Wine tasting event", "Charity gala", "Engagement party", "Baby shower", "Wedding reception",
     "Graduation party", "Anniversary celebration", "Holiday gathering", "New Year's Eve party", "Office party",
@@ -22,4 +21,3 @@
     "Beer and BBQ festival", "Dance party cruise", "Concert series in the park", "Casino night",
     "Food truck rally"
   ]
-}
