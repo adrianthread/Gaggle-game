@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Art gallery", "Pottery studio", "Photography studio", "Sculpture garden", "Street art exhibition",
     "Theater stage", "Dance studio", "Opera house", "Film studio", "Poetry slam venue", "Fashion runway",
     "Music recording studio", "Ballet rehearsal room", "Comedy club", "Graphic design studio",
@@ -21,4 +20,3 @@
     "Costume design studio", "Jazz jam session", "Art residency program", "Poetry slam championship",
     "Fashion runway show venue", "Music recording engineer's studio", "Theater stage design workshop"
   ]
-}
