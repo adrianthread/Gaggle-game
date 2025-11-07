@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Sunny", "Rainy", "Cloudy", "Windy", "Stormy", "Snowy", "Foggy", "Hailstorm", "Thunderstorm", "Tornado",
     "Blizzard", "Heatwave", "Drought", "Monsoon", "Hurricane", "Cyclone", "Misty", "Overcast", "Sleet",
     "Freezing rain", "Gusty", "Calm", "Humid", "Smoggy", "Muggy", "Clear", "Partly cloudy", "Drizzle", "Wet",
@@ -14,4 +13,3 @@
     "Light breeze", "Wind chill", "Sky condition", "Visibility", "Weather forecast", "Rain gauge",
     "Weather satellite", "Weather radar", "Weather vane"
   ]
-}
