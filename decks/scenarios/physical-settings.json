@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Wedding ceremony", "Funeral service", "Birthday party", "Graduation ceremony", "Awards show", "Concert",
     "Theater performance", "Dance recital", "Art exhibition", "Fashion show", "Conference", "Business meeting",
     "Product launch", "Networking event", "Trade show", "Charity gala", "Political rally", "Religious ceremony",
@@ -17,4 +16,3 @@
     "Anniversary celebration", "Holiday gathering", "Thanksgiving dinner", "Christmas party",
     "New Year's Eve countdown", "Baby shower", "Retirement party"
   ]
-}
