@@ -192,4 +192,32 @@ h1 {
   color: #333;
 }
 
+/* Mode Box */
+.mode-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.mode-box label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.mode-box select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+
+.mode-box select:focus {
+  border-color: #4CAF50;
+}
 #
