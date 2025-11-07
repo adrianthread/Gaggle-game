@@ -23,8 +23,8 @@ const DECK_PATHS = {
 };
 
 let loadedDecks = { nouns: {}, scenarios: {} };
-let selectedNounDeck = 'professions'; // default
-let selectedScenarioDeck = 'artistic-settings'; // default
+let selectedNounDeck = null;
+let selectedScenarioDeck = null;
 let decksLoaded = false;
 
 // ==== ELEMENTS ====
@@ -40,8 +40,14 @@ async function loadAllDecks() {
     promises.push(
       fetch(path)
         .then(r => r.json())
-        .then(data => { loadedDecks.nouns[key] = data; })
-        .catch(() => { loadedDecks.nouns[key] = ['?']; })
+        .then(data => {
+          loadedDecks.nouns[key] = data.filter(Boolean); // clean empty
+          if (loadedDecks.nouns[key].length === 0) loadedDecks.nouns[key] = ['?'];
+        })
+        .catch(err => {
+          console.warn(`Failed to load noun deck: ${key}`, err);
+          loadedDecks.nouns[key] = ['?'];
+        })
     );
   });
 
@@ -49,44 +55,59 @@ async function loadAllDecks() {
     promises.push(
       fetch(path)
         .then(r => r.json())
-        .then(data => { loadedDecks.scenarios[key] = data; })
-        .catch(() => { loadedDecks.scenarios[key] = ['?']; })
+        .then(data => {
+          loadedDecks.scenarios[key] = data.filter(Boolean);
+          if (loadedDecks.scenarios[key].length === 0) loadedDecks.scenarios[key] = ['?'];
+        })
+        .catch(err => {
+          console.warn(`Failed to load scenario deck: ${key}`, err);
+          loadedDecks.scenarios[key] = ['?'];
+        })
     );
   });
 
   await Promise.all(promises);
   decksLoaded = true;
-  console.log('All decks loaded');
+  console.log('All decks loaded successfully');
 }
 
 // ==== POPULATE SELECTORS ====
 function populateSelectors() {
+  // Noun decks
   nounDeckSelect.innerHTML = '';
   Object.keys(loadedDecks.nouns).forEach(key => {
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    if (key === selectedNounDeck) opt.selected = true;
+    opt.textContent = formatName(key);
     nounDeckSelect.appendChild(opt);
   });
+  selectedNounDeck = nounDeckSelect.value || Object.keys(loadedDecks.nouns)[0];
 
+  // Scenario decks
   scenarioDeckSelect.innerHTML = '';
   Object.keys(loadedDecks.scenarios).forEach(key => {
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    if (key === selectedScenarioDeck) opt.selected = true;
+    opt.textContent = formatName(key);
     scenarioDeckSelect.appendChild(opt);
   });
+  selectedScenarioDeck = scenarioDeckSelect.value || Object.keys(loadedDecks.scenarios)[0];
+}
+
+function formatName(key) {
+  return key
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 // ==== HELPERS ====
-const randomItem = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : '?';
+const randomItem = arr => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : '?';
 
 // ==== DRAW CARDS ====
 function drawCards() {
   if (!decksLoaded) {
-    alert('Decks still loading... try again in a sec!');
+    alert('Decks still loading... try again!');
     return [];
   }
 
@@ -117,7 +138,7 @@ function renderCards(cards) {
     front.innerHTML = 'Card';
     const back = document.createElement('div');
     back.className = 'card-back';
-    back.textContent = c || '?';
+    back.textContent = c;
     inner.appendChild(front);
     inner.appendChild(back);
     card.appendChild(inner);
@@ -128,9 +149,9 @@ function renderCards(cards) {
     });
   });
 
-  let prompt = 'What do you call a gaggle of: ' + (cards[0] || '?') + '?';
+  let prompt = `What do you call a gaggle of: ${cards[0]}?`;
   if (gameModeSelect.value === 'scenarios') {
-    prompt = 'What do you call a gaggle of: ' + (cards[0] || '?') + ' in a ' + (cards[1] || '?') + '?';
+    prompt = `What do you call a gaggle of: ${cards[0]} in a ${cards[1]}?`;
   }
   promptEl.textContent = prompt;
   promptEl.classList.remove('hidden');
@@ -153,11 +174,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAllDecks();
   populateSelectors();
 
-  // Initial UI state — HIDE SCENARIO DECK IF CLASSIC
+  // === INITIAL UI STATE ===
   const isScenarios = gameModeSelect.value === 'scenarios';
   scenarioDeckBox.classList.toggle('hidden', !isScenarios);
 
-  // Mode change
+  // === EVENT LISTENERS ===
   gameModeSelect.addEventListener('change', () => {
     const isScenarios = gameModeSelect.value === 'scenarios';
     scenarioDeckBox.classList.toggle('hidden', !isScenarios);
@@ -166,20 +187,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     answerInput.value = '';
   });
 
-  // Deck change
   nounDeckSelect.addEventListener('change', () => {
     selectedNounDeck = nounDeckSelect.value;
   });
+
   scenarioDeckSelect.addEventListener('change', () => {
     selectedScenarioDeck = scenarioDeckSelect.value;
   });
 
-  // Close modal
   resultModal.addEventListener('click', e => {
     if (e.target === resultModal) resultModal.classList.add('hidden');
   });
 
-  // Main interaction
   document.addEventListener('click', e => {
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
@@ -189,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
-      const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent).filter(Boolean);
+      const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
       fetch('/.netlify/functions/score', {
         method: 'POST',
