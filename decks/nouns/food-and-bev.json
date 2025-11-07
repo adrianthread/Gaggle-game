@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Apples", "Bananas", "Oranges", "Strawberries", "Watermelons", "Pineapples", "Grapes", "Blueberries",
     "Mangos", "Kiwis", "Peaches", "Pears", "Cherries", "Raspberries", "Lemons", "Limes", "Avocados", "Tomatoes",
     "Cucumbers", "Carrots", "Broccoli", "Spinach", "Lettuce", "Potatoes", "Onions", "Garlic", "Bell Peppers",
@@ -12,4 +11,3 @@
     "Candy", "Cookie", "Brownie", "Donut", "Pie", "Pudding", "Muffin", "Croissant", "Bagel", "Pretzel", "Cereal",
     "Granola", "Oatmeal", "Honey", "Jam", "Nutella", "Peanut Butter", "Maple Syrup"
   ]
-}
