@@ -1,71 +1,65 @@
-// NO require('node-fetch') — use native fetch!
-
+// .netlify/functions/score.js
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
-  }
+  const { cards, answer } = JSON.parse(event.body);
+  const noun = cards[0];
+  const scenario = cards[1] || '';
 
-  let cards, answer;
-  try {
-    ({ cards, answer } = JSON.parse(event.body));
-  } catch (e) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
-  }
-
-  if (!cards || !answer) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing data' }) };
-  }
-
-  const prompt = `You are a witty game show host for "Gaggle". Style yourself on hosts at the New York competition 'Punderdome'.
-Cards drawn: ${cards.join(', ')}  
+  // ──────────────────────  USER PROMPT  ──────────────────────
+  const userPrompt = `Cards drawn: ${cards.join(', ')}
 Player answer: "${answer}"
 
-If there's more than one card, the collective noun should create a connection between them.
+${scenario ? 'Create a connection between the noun and the scenario.' : ''}
 
-Rate 1–10 on relevance, wordplay, absurdity, cleverness.
-Give:
-- A single score
-- 1-sentence funny commentary
-- Your creative and punny attempt to make a collective noun for the drawn cards
+Rate 1–10 (relevance, wordplay, absurdity, cleverness) and give:
+- One score
+- One funny sentence commentary
+- One creative collective-noun guess (1-2 words only)
 
-Format exactly:
+Format **exactly**:
 SCORE: X/10
-COMMENT: [funny line]
-Your answer: [AI collective noun]`;
+COMMENT: <funny line>
+COLLECTIVE: <your guess>`;
+
+  // ──────────────────────  SYSTEM PROMPT  ──────────────────────
+  const systemPrompt = `You are the snarky, pun-loving host of "Gaggle", styled after the New York Punderdome. 
+Keep every reply short, hilarious, and in-character. 
+Never break the three-line format.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'x-api-key': process.env.ANTHROPIC_API_KEY,
         'anthropic-version': '2023-06-01',
-        'content-type': 'application/json'
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: 'claude-3-haiku-20240307',
-        max_tokens: 200,
-        messages: [{ role: 'user', content: prompt }]
-      })
+        max_tokens: 180,
+        temperature: 0.9,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('Anthropic error:', err);
-      throw new Error(`HTTP ${response.status}`);
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error('Anthropic error:', txt);
+      throw new Error(`HTTP ${res.status}`);
     }
 
-    const data = await response.json();
-    const text = data.content[0].text;
+    const data = await res.json();
+    const text = data.content[0].text.trim();
 
-    // Robust parsing
-    const score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] || '5');
-    const comment = text.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is)?.[1]?.trim() || "Solid effort!";
-    const pun = text.match(/PUN:\s*(.+)/is)?.[1]?.trim() || "Pun not found.";
+    // ────────  ROBUST PARSING  ────────
+    const score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] ?? '5', 10);
+    const comment = text.match(/COMMENT:\s*(.+?)(?=COLLECTIVE:|$)/is)?.[1]?.trim() ?? 'Nice try!';
+    const aiCollective = text.match(/COLLECTIVE:\s*(.+?)(?:\n|$)/is)?.[1]?.trim() ?? 'a gaggle';
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment, pun })
+      body: JSON.stringify({ score, comment, aiCollective }),
     };
   } catch (err) {
     console.error('Function error:', err);
@@ -73,9 +67,9 @@ Your answer: [AI collective noun]`;
       statusCode: 500,
       body: JSON.stringify({
         score: 1,
-        comment: "AI took a nap.",
-        pun: "Error 500: Wit not found."
-      })
+        comment: 'AI took a nap.',
+        aiCollective: 'a glitch',
+      }),
     };
   }
 };
