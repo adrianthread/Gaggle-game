@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Chairs", "Tables", "Lamps", "Books", "Pens", "Pencils", "Notebooks", "Clocks", "Computers", "Phones",
     "Televisions", "Remote Controls", "Glasses", "Cameras", "Wallets", "Keys", "Bags", "Shoes", "Hats", "Shirts",
     "Pants", "Dresses", "Coats", "Umbrellas", "Backpacks", "Suitcases", "Mirrors", "Brushes", "Toothbrushes",
@@ -26,4 +25,3 @@
     "Tablecloths", "Placemats", "Candles", "Matches", "Lighters", "Vases", "Flowers", "Picture Frames",
     "Candle Holders", "Statues"
   ]
-}
