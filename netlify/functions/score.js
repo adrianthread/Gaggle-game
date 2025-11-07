@@ -1,11 +1,17 @@
-const fetch = require('node-fetch');
+// NO require('node-fetch') — use native fetch!
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
-  return { statusCode: 405, body: 'Method not allowed' };
+    return { statusCode: 405, body: 'Method not allowed' };
   }
 
-  const { cards, answer } = JSON.parse(event.body);
+  let cards, answer;
+  try {
+    ({ cards, answer } = JSON.parse(event.body));
+  } catch (e) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+  }
+
   if (!cards || !answer) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing data' }) };
   }
@@ -15,11 +21,11 @@ exports.handler = async (event, context) => {
 Cards drawn: ${cards.join(', ')}  
 Player answer: "${answer}"
 
-Rate the answer on a scale of 1–10 for relevance, wordplay, absurdity, cleverness.
+Rate 1–10 on relevance, wordplay, absurdity, cleverness.
 Give:
-- A single score (average of above)
+- A single score
 - 1-sentence funny commentary
-- 1 punny comeback as the AI host
+- 1 punny comeback
 
 Format exactly:
 SCORE: X/10
@@ -42,47 +48,32 @@ PUN: [AI pun]`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Anthropic API Error:', response.status, errorText);
-      throw new Error(`API error: ${response.status}`);
+      const err = await response.text();
+      console.error('Anthropic error:', err);
+      throw new Error(`HTTP ${response.status}`);
     }
 
     const data = await response.json();
-    const rawText = data.content[0].text;
+    const text = data.content[0].text;
 
-    // DEBUG: LOG RAW AI RESPONSE
-    console.log('=== RAW AI RESPONSE ===');
-    console.log(rawText);
-    console.log('=== END RAW ===');
-
-    // Try to parse
-    let score = 5;
-    let comment = "Not bad, but I've seen better!";
-    let pun = "No pun in ten did!";
-
-    const scoreMatch = rawText.match(/SCORE:\s*(\d+)/i);
-    if (scoreMatch) score = parseInt(scoreMatch[1]);
-
-    const commentMatch = rawText.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is);
-    if (commentMatch) comment = commentMatch[1].trim();
-
-    const punMatch = rawText.match(/PUN:\s*(.+)/is);
-    if (punMatch) pun = punMatch[1].trim();
+    // Robust parsing
+    const score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] || '5');
+    const comment = text.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is)?.[1]?.trim() || "Solid effort!";
+    const pun = text.match(/PUN:\s*(.+)/is)?.[1]?.trim() || "Pun not found.";
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment, pun, debug: rawText }) // SEND RAW BACK
+      body: JSON.stringify({ score, comment, pun })
     };
   } catch (err) {
-    console.error('Function Error:', err);
+    console.error('Function error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        score: 1, 
-        comment: "AI crashed.", 
-        pun: "Error 500: Pun not found.",
-        debug: err.message 
+      body: JSON.stringify({
+        score: 1,
+        comment: "AI took a nap.",
+        pun: "Error 500: Wit not found."
       })
     };
   }
