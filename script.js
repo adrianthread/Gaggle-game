@@ -1,23 +1,91 @@
 // ==== DECKS LOADED FROM JSON ====
-let nounsDeck = [];
-let scenariosDeck = [];
+const DECK_PATHS = {
+  nouns: {
+    animals: '/decks/nouns/animals.json',
+    professions: '/decks/nouns/professions.json',
+    'food-and-bev': '/decks/nouns/food-and-bev.json',
+    objects: '/decks/nouns/objects.json',
+    'sporting-athletes': '/decks/nouns/sporting-athletes.json',
+    'fantasy-creatures': '/decks/nouns/fantasy-creatures.json'
+  },
+  scenarios: {
+    'physical-settings': '/decks/scenarios/physical-settings.json',
+    'emotional-states': '/decks/scenarios/emotional-states.json',
+    'family-settings': '/decks/scenarios/family-settings.json',
+    'social-gatherings': '/decks/scenarios/social-gatherings.json',
+    'fantasy-settings': '/decks/scenarios/fantasy-settings.json',
+    'historical-settings': '/decks/scenarios/historical-settings.json',
+    'artistic-settings': '/decks/scenarios/artistic-settings.json',
+    'natural-phenomenon': '/decks/scenarios/natural-phenomenon.json',
+    'transportation-modes': '/decks/scenarios/transportation-modes.json',
+    'weather-conditions': '/decks/scenarios/weather-conditions.json'
+  }
+};
+
+let loadedDecks = { nouns: {}, scenarios: {} };
+let selectedNounDeck = null;
+let selectedScenarioDeck = null;
 
 // ==== ELEMENTS ====
-let cardArea, promptEl, answerInput, resultModal, gameModeSelect;
+let cardArea, promptEl, answerInput, resultModal;
+let gameModeSelect, nounDeckSelect, scenarioDeckSelect;
+let nounDeckBox, scenarioDeckBox;
 
-// ==== LOAD DECKS ===
-async function loadDecks() {
-  try {
-    const [nounsRes, scenariosRes] = await Promise.all([
-      fetch('/decks/nouns.json'),
-      fetch('/decks/scenarios.json')
-    ]);
-    nounsDeck = await nounsRes.json();
-    scenariosDeck = await scenariosRes.json();
-  } catch (err) {
-    console.error('Failed to load decks:', err);
-    alert('Decks failed to load. Check console.');
-  }
+// ==== LOAD ALL DECKS ONCE ====
+async function loadAllDecks() {
+  const nounPromises = Object.entries(DECK_PATHS.nouns).map(async ([key, path]) => {
+    try {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error();
+      loadedDecks.nouns[key] = await res.json();
+    } catch (e) {
+      console.warn(`Failed to load noun deck: ${key}`);
+      loadedDecks.nouns[key] = ['?'];
+    }
+  });
+
+  const scenarioPromises = Object.entries(DECK_PATHS.scenarios).map(async ([key, path]) => {
+    try {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error();
+      loadedDecks.scenarios[key] = await res.json();
+    } catch (e) {
+      console.warn(`Failed to load scenario deck: ${key}`);
+      loadedDecks.scenarios[key] = ['?'];
+    }
+  });
+
+  await Promise.all([...nounPromises, ...scenarioPromises]);
+}
+
+// ==== POPULATE DECK SELECTORS ====
+function populateDeckSelectors() {
+  // Noun decks
+  nounDeckSelect.innerHTML = '';
+  Object.keys(loadedDecks.nouns).forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = formatDeckName(key);
+    nounDeckSelect.appendChild(opt);
+  });
+  selectedNounDeck = nounDeckSelect.value;
+
+  // Scenario decks
+  scenarioDeckSelect.innerHTML = '';
+  Object.keys(loadedDecks.scenarios).forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = formatDeckName(key);
+    scenarioDeckSelect.appendChild(opt);
+  });
+  selectedScenarioDeck = scenarioDeckSelect.value;
+}
+
+function formatDeckName(key) {
+  return key
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 // ==== HELPERS ====
@@ -29,10 +97,11 @@ function drawCards() {
   let drawn = [];
 
   if (mode === 'classic') {
-    drawn = [randomItem(nounsDeck)];
+    const deck = loadedDecks.nouns[selectedNounDeck];
+    drawn = [randomItem(deck)];
   } else if (mode === 'scenarios') {
-    const noun = randomItem(nounsDeck);
-    const scenario = randomItem(scenariosDeck);
+    const noun = randomItem(loadedDecks.nouns[selectedNounDeck]);
+    const scenario = randomItem(loadedDecks.scenarios[selectedScenarioDeck]);
     drawn = [noun, scenario];
   }
 
@@ -57,7 +126,6 @@ function renderCards(cards) {
     card.appendChild(inner);
     cardArea.appendChild(card);
 
-    // CSP-safe flip animation
     requestAnimationFrame(() => {
       requestAnimationFrame(() => card.classList.add('flipped'));
     });
@@ -73,30 +141,50 @@ function renderCards(cards) {
 
 // ==== DOM READY ====
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadDecks(); // Wait for decks to load
-
+  // Elements
   cardArea = document.getElementById('cardArea');
   promptEl = document.getElementById('prompt');
   answerInput = document.getElementById('answerInput');
   resultModal = document.getElementById('resultModal');
   gameModeSelect = document.getElementById('gameMode');
+  nounDeckSelect = document.getElementById('nounDeckSelect');
+  scenarioDeckSelect = document.getElementById('scenarioDeckSelect');
+  nounDeckBox = document.getElementById('nounDeckBox');
+  scenarioDeckBox = document.getElementById('scenarioDeckBox');
 
-  // Close modal on background click
-  resultModal.addEventListener('click', (e) => {
-    if (e.target === resultModal) {
-      resultModal.classList.add('hidden');
-    }
+  // Load decks
+  await loadAllDecks();
+  populateDeckSelectors();
+
+  // Update UI on mode change
+  gameModeSelect.addEventListener('change', () => {
+    const isScenarios = gameModeSelect.value === 'scenarios';
+    scenarioDeckBox.classList.toggle('hidden', !isScenarios);
+    cardArea.innerHTML = '';
+    promptEl.classList.add('hidden');
+    answerInput.value = '';
   });
 
-  // Main click handler
-  document.addEventListener('click', (e) => {
-    // Draw Cards
+  // Track selected decks
+  nounDeckSelect.addEventListener('change', () => {
+    selectedNounDeck = nounDeckSelect.value;
+  });
+  scenarioDeckSelect.addEventListener('change', () => {
+    selectedScenarioDeck = scenarioDeckSelect.value;
+  });
+
+  // Close modal
+  resultModal.addEventListener('click', e => {
+    if (e.target === resultModal) resultModal.classList.add('hidden');
+  });
+
+  // Main interaction
+  document.addEventListener('click', e => {
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
       renderCards(cards);
     }
 
-    // Submit Answer
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
@@ -107,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cards, answer })
       })
-        .then(res => res.json())
+        .then(r => r.json())
         .then(data => {
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
           document.getElementById('commentDisplay').textContent = data.comment;
@@ -115,31 +203,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           resultModal.classList.remove('hidden');
           answerInput.value = '';
         })
-        .catch(() => alert('AI is thinking... try again!'));
+        .catch(() => alert('AI is thinking… try again!'));
     }
 
-    // Close Modal
     if (e.target.id === 'closeModal') {
       e.stopPropagation();
       resultModal.classList.add('hidden');
     }
 
-    // Share Score
     if (e.target.id === 'shareBtn') {
       e.stopPropagation();
       const text = `I got ${document.getElementById('scoreDisplay').textContent} in Gaggle! Play: ${location.href}`;
       if (navigator.share) {
         navigator.share({ text }).catch(() => {});
       } else {
-        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+        navigator.clipboard.writeText(text).then(() => alert('Copied!'));
       }
     }
-  });
-
-  // Reset on mode change
-  gameModeSelect.addEventListener('change', () => {
-    cardArea.innerHTML = '';
-    promptEl.classList.add('hidden');
-    answerInput.value = '';
   });
 });
