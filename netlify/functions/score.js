@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+  return { statusCode: 405, body: 'Method not allowed' };
   }
 
   const { cards, answer } = JSON.parse(event.body);
@@ -42,42 +42,47 @@ PUN: [AI pun]`;
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Anthropic API Error:', response.status, errorText);
       throw new Error(`API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const text = data.content[0].text.trim();
+    const rawText = data.content[0].text;
 
-    // === ROBUST PARSING ===
+    // DEBUG: LOG RAW AI RESPONSE
+    console.log('=== RAW AI RESPONSE ===');
+    console.log(rawText);
+    console.log('=== END RAW ===');
+
+    // Try to parse
     let score = 5;
     let comment = "Not bad, but I've seen better!";
     let pun = "No pun in ten did!";
 
-    // Extract score
-    const scoreMatch = text.match(/SCORE:\s*(\d+)/i);
+    const scoreMatch = rawText.match(/SCORE:\s*(\d+)/i);
     if (scoreMatch) score = parseInt(scoreMatch[1]);
 
-    // Extract comment
-    const commentMatch = text.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is);
+    const commentMatch = rawText.match(/COMMENT:\s*(.+?)(?=PUN:|$)/is);
     if (commentMatch) comment = commentMatch[1].trim();
 
-    // Extract pun
-    const punMatch = text.match(/PUN:\s*(.+)/is);
+    const punMatch = rawText.match(/PUN:\s*(.+)/is);
     if (punMatch) pun = punMatch[1].trim();
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment, pun })
+      body: JSON.stringify({ score, comment, pun, debug: rawText }) // SEND RAW BACK
     };
   } catch (err) {
-    console.error('AI Error:', err);
+    console.error('Function Error:', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ 
         score: 1, 
-        comment: "AI had a brain fart.", 
-        pun: "Error 404: Pun not found." 
+        comment: "AI crashed.", 
+        pun: "Error 500: Pun not found.",
+        debug: err.message 
       })
     };
   }
