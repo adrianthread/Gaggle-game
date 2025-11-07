@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Ancient Greek city-state", "Egyptian pyramid complex", "Roman Colosseum", "Medieval castle",
     "Renaissance art studio", "Viking longhouse", "Aztec temple", "Mayan city", "Chinese imperial palace",
     "Japanese samurai dojo", "Native American village", "Victorian-era ballroom",
@@ -24,4 +23,3 @@
     "Roman public baths", "Viking longship harbor", "Renaissance music chamber",
     "Industrial Revolution cotton mill", "Ancient Mesopotamian library"
   ]
-}
