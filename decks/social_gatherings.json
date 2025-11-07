@@ -1,0 +1,25 @@
+{
+  "deck": [
+    "Cocktail party", "Dinner party", "Housewarming party", "Costume party", "Pool party", "BBQ party",
+    "Game night", "Wine tasting event", "Charity gala", "Engagement party", "Baby shower", "Wedding reception",
+    "Graduation party", "Anniversary celebration", "Holiday gathering", "New Year's Eve party", "Office party",
+    "Bridal shower", "Retirement party", "Reunion", "Bachelor party", "Bachelorette party", "Surprise party",
+    "Art exhibit opening", "Book club meeting", "Cooking class", "Dance party", "Fashion show", "Film screening",
+    "Karaoke night", "Live music performance", "Poetry reading", "Stand-up comedy show", "TED talk event",
+    "Theater play", "Trivia night", "Yoga retreat", "Cultural festival", "Street fair", "Picnic in the park",
+    "Beach bonfire", "Outdoor concert", "Farmers market", "Food truck festival", "Craft fair",
+    "Wine and cheese tasting", "Art workshop", "Community fundraiser", "Poetry slam", "Talent show",
+    "Beer pong tournament", "Speed dating event", "Paint and sip night", "Cooking competition",
+    "Open mic night", "Charity run/walk event", "Stand-up paddleboarding gathering", "Wine and paint party",
+    "Film festival", "Outdoor movie night", "Comedy roast", "Fashion runway show", "Dance competition",
+    "Potluck dinner", "Writing workshop", "Salsa dancing night", "Drum circle gathering", "Trivia quiz night",
+    "Ice cream social", "Concert in the park", "Board game marathon", "Drumming workshop",
+    "Outdoor yoga session", "Food and wine pairing event", "Jazz night", "Charity auction", "Silent disco",
+    "Beer tasting event", "Craft beer festival", "Art battle", "Masquerade ball", "Film premiere",
+    "Improv comedy show", "Charity concert", "Outdoor theater performance", "Food festival", "Bar trivia night",
+    "Outdoor sports tournament", "Poetry open mic night", "Cooking demonstration", "Wine auction",
+    "Craft workshop", "Fashion pop-up shop", "Artisan market", "Comedy improv workshop",
+    "Beer and BBQ festival", "Dance party cruise", "Concert series in the park", "Casino night",
+    "Food truck rally"
+  ]
+}
