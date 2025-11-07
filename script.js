@@ -218,11 +218,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         .then(r => r.json())
         .then(data => {
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
-          document.getElementById('commentDisplay').textContent = data.comment;
-          document.getElementById('punDisplay').querySelector('span').textContent = data.pun;
-          resultModal.classList.remove('hidden');
-          answerInput.value = '';
-        })
+document.getElementById('commentDisplay').textContent = data.comment;
+document.getElementById('aiCollectiveText').textContent = data.aiCollective;
+resultModal.classList.remove('hidden');
+answerInput.value = '';
+})
         .catch(() => alert('AI is thinking… try again!'));
     }
 
