@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Rainstorm", "Aurora Borealis", "Tsunami", "Earthquake", "Thunderstorm", "Rainbow", "Tornado",
     "Solar Eclipse", "Blizzard", "Volcanic Eruption", "Avalanche", "Meteor Shower", "Comet", "Hailstorm",
     "Sandstorm", "Fog", "Heatwave", "Ice Storm", "Monsoon", "Hurricane", "Cyclone", "Waterspout", "Drought",
@@ -8,4 +7,3 @@
     "Pyrocumulus Cloud", "Mudslide", "Waterspout", "Dust Storm", "Wind Shear", "Snowsquall", "Steam Devil",
     "Diamond Dust", "Sun Pillar", "Virga", "Frost Flower", "Mistral"
   ]
-}
