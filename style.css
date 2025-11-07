@@ -244,4 +244,7 @@ h1 {
   border: 2px solid #fff;
   min-width: 180px;
 }
-#
+
+.hidden {
+  display: none !important;
+}

@@ -16,21 +16,22 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing data' }) };
   }
 
-  const prompt = `You are a witty game show host for "Gaggle".
-
+  const prompt = `You are a witty game show host for "Gaggle". Style yourself on hosts at the New York competition 'Punderdome'.
 Cards drawn: ${cards.join(', ')}  
 Player answer: "${answer}"
+
+If there's more than one card, the collective noun should create a connection between them.
 
 Rate 1–10 on relevance, wordplay, absurdity, cleverness.
 Give:
 - A single score
 - 1-sentence funny commentary
-- 1 punny comeback
+- Your creative and punny attempt to make a collective noun for the drawn cards
 
 Format exactly:
 SCORE: X/10
 COMMENT: [funny line]
-PUN: [AI pun]`;
+Your answer: [AI collective noun]`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
