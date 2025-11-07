@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Doctors", "Teachers", "Engineers", "Chefs", "Pilots", "Lawyers", "Photographers", "Writers", "Musicians",
     "Carpenters", "Scientists", "Artists", "Nurses", "Athletes", "Actors", "Astronauts", "Firefighters",
     "Police Officers", "Farmers", "Architects", "Veterinarians", "Designers", "Dentists", "Electricians",
@@ -16,4 +15,3 @@
     "Graphic Designers", "Journalists", "Lawyers", "Mechanics", "Nurses", "Photographers", "Scientists",
     "Teachers", "Veterinarians"
   ]
-}
