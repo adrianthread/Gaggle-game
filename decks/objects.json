@@ -1,0 +1,29 @@
+{
+  "deck": [
+    "Chairs", "Tables", "Lamps", "Books", "Pens", "Pencils", "Notebooks", "Clocks", "Computers", "Phones",
+    "Televisions", "Remote Controls", "Glasses", "Cameras", "Wallets", "Keys", "Bags", "Shoes", "Hats", "Shirts",
+    "Pants", "Dresses", "Coats", "Umbrellas", "Backpacks", "Suitcases", "Mirrors", "Brushes", "Toothbrushes",
+    "Toothpaste", "Soap", "Towels", "Shampoo", "Conditioner", "Razors", "Perfume", "Watches", "Earrings",
+    "Necklaces", "Bracelets", "Rings", "Headphones", "Speakers", "Guitars", "Drums", "Pianos", "Microphones",
+    "Wallets", "Sunglasses", "Cameras", "Bicycles", "Cars", "Motorcycles", "Trains", "Airplanes", "Boats",
+    "Helmets", "Compasses", "Maps", "Binoculars", "Tents", "Sleeping Bags", "Camping Stoves", "Backpacks",
+    "Hiking Boots", "Hammocks", "Picnic Baskets", "Coolers", "Fishing Rods", "Surfboards", "Skateboards",
+    "Scooters", "Balloons", "Kites", "Puzzles", "Board Games", "Playing Cards", "Rubik's Cubes", "Chess Sets",
+    "Lego", "Toy Cars", "Dolls", "Action Figures", "Teddy Bears", "Soccer Balls", "Basketballs", "Footballs",
+    "Tennis Rackets", "Golf Clubs", "Baseball Bats", "Frisbees", "Jump Ropes", "Hula Hoops", "Skates",
+    "Rollerblades", "Tennis Balls", "Pool Cues", "Bowling Balls", "Dartboards", "Paintbrushes", "Canvases",
+    "Easels", "Sculptures", "Pottery Wheels", "Hammers", "Screwdrivers", "Wrenches", "Drills", "Saws",
+    "Tape Measures", "Nails", "Screws", "Ropes", "Glue", "Scissors", "Needles", "Threads", "Sewing Machines",
+    "Fabric", "Buttons", "Zippers", "Staplers", "Paper Clips", "Binders", "Calculators", "Erasers", "Rulers",
+    "Glitter", "Paint", "Palettes", "Canvases", "Frames", "Glue Guns", "Beads", "Ribbons", "Sequins", "Stickers",
+    "Envelopes", "Postcards", "Stamps", "Magnifying Glasses", "Binoculars", "Telescopes", "Microscopes",
+    "Lab Coats", "Petri Dishes", "Test Tubes", "Bunsen Burners", "Thermometers", "Safety Goggles",
+    "Graduated Cylinders", "Beakers", "Pipettes", "Erlenmeyer Flasks", "Magnets", "Batteries", "Circuit Boards",
+    "Wires", "Light Bulbs", "Switches", "Plugs", "Outlets", "Extension Cords", "Fans", "Air Conditioners",
+    "Heaters", "Vacuum Cleaners", "Blenders", "Coffee Makers", "Toasters", "Microwaves", "Ovens", "Refrigerators",
+    "Washing Machines", "Dryers", "Irons", "Hairdryers", "Scales", "Thermoses", "Pots and Pans",
+    "Cutting Boards", "Knives", "Forks", "Spoons", "Plates", "Bowls", "Cups", "Glasses", "Mugs", "Napkins",
+    "Tablecloths", "Placemats", "Candles", "Matches", "Lighters", "Vases", "Flowers", "Picture Frames",
+    "Candle Holders", "Statues"
+  ]
+}
