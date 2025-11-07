@@ -153,12 +153,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadAllDecks();
   populateSelectors();
 
-  // Mode change – show/hide Scenario deck selector
+  // Initial UI state — HIDE SCENARIO DECK IF CLASSIC
+  const isScenarios = gameModeSelect.value === 'scenarios';
+  scenarioDeckBox.classList.toggle('hidden', !isScenarios);
+
+  // Mode change
   gameModeSelect.addEventListener('change', () => {
     const isScenarios = gameModeSelect.value === 'scenarios';
     scenarioDeckBox.classList.toggle('hidden', !isScenarios);
-    
-    // Reset UI
     cardArea.innerHTML = '';
     promptEl.classList.add('hidden');
     answerInput.value = '';
@@ -177,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target === resultModal) resultModal.classList.add('hidden');
   });
 
-  // Main clicks
+  // Main interaction
   document.addEventListener('click', e => {
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
@@ -202,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           resultModal.classList.remove('hidden');
           answerInput.value = '';
         })
-        .catch(() => alert('AI is thinking... try again!'));
+        .catch(() => alert('AI is thinking… try again!'));
     }
 
     if (e.target.id === 'closeModal') {
