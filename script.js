@@ -1,4 +1,4 @@
-// ==== DECKS LOADED FROM JSON ====
+// ==== DECK PATHS ====
 const DECK_PATHS = {
   nouns: {
     animals: '/decks/nouns/animals.json',
@@ -23,86 +23,83 @@ const DECK_PATHS = {
 };
 
 let loadedDecks = { nouns: {}, scenarios: {} };
-let selectedNounDeck = null;
-let selectedScenarioDeck = null;
+let selectedNounDeck = 'professions'; // default
+let selectedScenarioDeck = 'artistic-settings'; // default
+let decksLoaded = false;
 
 // ==== ELEMENTS ====
 let cardArea, promptEl, answerInput, resultModal;
 let gameModeSelect, nounDeckSelect, scenarioDeckSelect;
 let nounDeckBox, scenarioDeckBox;
 
-// ==== LOAD ALL DECKS ONCE ====
+// ==== LOAD DECKS ====
 async function loadAllDecks() {
-  const nounPromises = Object.entries(DECK_PATHS.nouns).map(async ([key, path]) => {
-    try {
-      const res = await fetch(path);
-      if (!res.ok) throw new Error();
-      loadedDecks.nouns[key] = await res.json();
-    } catch (e) {
-      console.warn(`Failed to load noun deck: ${key}`);
-      loadedDecks.nouns[key] = ['?'];
-    }
+  const promises = [];
+
+  Object.entries(DECK_PATHS.nouns).forEach(([key, path]) => {
+    promises.push(
+      fetch(path)
+        .then(r => r.json())
+        .then(data => { loadedDecks.nouns[key] = data; })
+        .catch(() => { loadedDecks.nouns[key] = ['?']; })
+    );
   });
 
-  const scenarioPromises = Object.entries(DECK_PATHS.scenarios).map(async ([key, path]) => {
-    try {
-      const res = await fetch(path);
-      if (!res.ok) throw new Error();
-      loadedDecks.scenarios[key] = await res.json();
-    } catch (e) {
-      console.warn(`Failed to load scenario deck: ${key}`);
-      loadedDecks.scenarios[key] = ['?'];
-    }
+  Object.entries(DECK_PATHS.scenarios).forEach(([key, path]) => {
+    promises.push(
+      fetch(path)
+        .then(r => r.json())
+        .then(data => { loadedDecks.scenarios[key] = data; })
+        .catch(() => { loadedDecks.scenarios[key] = ['?']; })
+    );
   });
 
-  await Promise.all([...nounPromises, ...scenarioPromises]);
+  await Promise.all(promises);
+  decksLoaded = true;
+  console.log('All decks loaded');
 }
 
-// ==== POPULATE DECK SELECTORS ====
-function populateDeckSelectors() {
-  // Noun decks
+// ==== POPULATE SELECTORS ====
+function populateSelectors() {
   nounDeckSelect.innerHTML = '';
   Object.keys(loadedDecks.nouns).forEach(key => {
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = formatDeckName(key);
+    opt.textContent = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    if (key === selectedNounDeck) opt.selected = true;
     nounDeckSelect.appendChild(opt);
   });
-  selectedNounDeck = nounDeckSelect.value;
 
-  // Scenario decks
   scenarioDeckSelect.innerHTML = '';
   Object.keys(loadedDecks.scenarios).forEach(key => {
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = formatDeckName(key);
+    opt.textContent = key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    if (key === selectedScenarioDeck) opt.selected = true;
     scenarioDeckSelect.appendChild(opt);
   });
-  selectedScenarioDeck = scenarioDeckSelect.value;
-}
-
-function formatDeckName(key) {
-  return key
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
 }
 
 // ==== HELPERS ====
-const randomItem = arr => arr[Math.floor(Math.random() * arr.length)];
+const randomItem = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : '?';
 
 // ==== DRAW CARDS ====
 function drawCards() {
+  if (!decksLoaded) {
+    alert('Decks still loading... try again in a sec!');
+    return [];
+  }
+
   const mode = gameModeSelect.value;
   let drawn = [];
 
+  const nounDeck = loadedDecks.nouns[selectedNounDeck] || ['?'];
+  const scenarioDeck = loadedDecks.scenarios[selectedScenarioDeck] || ['?'];
+
   if (mode === 'classic') {
-    const deck = loadedDecks.nouns[selectedNounDeck];
-    drawn = [randomItem(deck)];
-  } else if (mode === 'scenarios') {
-    const noun = randomItem(loadedDecks.nouns[selectedNounDeck]);
-    const scenario = randomItem(loadedDecks.scenarios[selectedScenarioDeck]);
-    drawn = [noun, scenario];
+    drawn = [randomItem(nounDeck)];
+  } else {
+    drawn = [randomItem(nounDeck), randomItem(scenarioDeck)];
   }
 
   return drawn;
@@ -120,7 +117,7 @@ function renderCards(cards) {
     front.innerHTML = 'Card';
     const back = document.createElement('div');
     back.className = 'card-back';
-    back.textContent = c;
+    back.textContent = c || '?';
     inner.appendChild(front);
     inner.appendChild(back);
     card.appendChild(inner);
@@ -131,11 +128,11 @@ function renderCards(cards) {
     });
   });
 
-  let promptText = `What do you call a gaggle of: ${cards[0]}?`;
+  let prompt = 'What do you call a gaggle of: ' + (cards[0] || '?') + '?';
   if (gameModeSelect.value === 'scenarios') {
-    promptText = `What do you call a gaggle of: ${cards[0]} in a ${cards[1]}?`;
+    prompt = 'What do you call a gaggle of: ' + (cards[0] || '?') + ' in a ' + (cards[1] || '?') + '?';
   }
-  promptEl.textContent = promptText;
+  promptEl.textContent = prompt;
   promptEl.classList.remove('hidden');
 }
 
@@ -154,18 +151,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load decks
   await loadAllDecks();
-  populateDeckSelectors();
+  populateSelectors();
 
-  // Update UI on mode change
+  // Mode change – show/hide Scenario deck selector
   gameModeSelect.addEventListener('change', () => {
     const isScenarios = gameModeSelect.value === 'scenarios';
     scenarioDeckBox.classList.toggle('hidden', !isScenarios);
+    
+    // Reset UI
     cardArea.innerHTML = '';
     promptEl.classList.add('hidden');
     answerInput.value = '';
   });
 
-  // Track selected decks
+  // Deck change
   nounDeckSelect.addEventListener('change', () => {
     selectedNounDeck = nounDeckSelect.value;
   });
@@ -178,17 +177,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target === resultModal) resultModal.classList.add('hidden');
   });
 
-  // Main interaction
+  // Main clicks
   document.addEventListener('click', e => {
     if (e.target.id === 'drawBtn') {
       const cards = drawCards();
-      renderCards(cards);
+      if (cards.length) renderCards(cards);
     }
 
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
-      const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
+      const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent).filter(Boolean);
 
       fetch('/.netlify/functions/score', {
         method: 'POST',
@@ -203,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           resultModal.classList.remove('hidden');
           answerInput.value = '';
         })
-        .catch(() => alert('AI is thinking… try again!'));
+        .catch(() => alert('AI is thinking... try again!'));
     }
 
     if (e.target.id === 'closeModal') {
