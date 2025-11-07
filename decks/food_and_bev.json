@@ -1,0 +1,15 @@
+{
+  "deck": [
+    "Apples", "Bananas", "Oranges", "Strawberries", "Watermelons", "Pineapples", "Grapes", "Blueberries",
+    "Mangos", "Kiwis", "Peaches", "Pears", "Cherries", "Raspberries", "Lemons", "Limes", "Avocados", "Tomatoes",
+    "Cucumbers", "Carrots", "Broccoli", "Spinach", "Lettuce", "Potatoes", "Onions", "Garlic", "Bell Peppers",
+    "Mushrooms", "Celery", "Corn", "Eggplants", "Zucchinis", "Pumpkins", "Radishes", "Cauliflower", "Asparagus",
+    "Water", "Milk", "Tea", "Coffee", "Orange Juice", "Apple Juice", "Grape Juice", "Lemonade", "Soda",
+    "Energy Drink", "Smoothie", "Hot Chocolate", "Coconut Water", "Almond Milk", "Soy Milk", "Yogurt", "Cheese",
+    "Bread", "Rice", "Pasta", "Pizza", "Hamburgers", "Hot Dogs", "Sandwiches", "Salad", "Soup", "Sushi",
+    "Fried Chicken", "Steak", "Fish", "Shrimp", "Lobster", "Crab", "Bacon", "Eggs", "Pancakes", "Waffles",
+    "Omelette", "French Fries", "Onion Rings", "Nachos", "Popcorn", "Ice Cream", "Cake", "Cupcake", "Chocolate",
+    "Candy", "Cookie", "Brownie", "Donut", "Pie", "Pudding", "Muffin", "Croissant", "Bagel", "Pretzel", "Cereal",
+    "Granola", "Oatmeal", "Honey", "Jam", "Nutella", "Peanut Butter", "Maple Syrup"
+  ]
+}
