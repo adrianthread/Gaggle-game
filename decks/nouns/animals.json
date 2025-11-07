@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Cats", "Dogs", "Elephants", "Tigers", "Giraffes", "Lions", "Monkeys", "Dolphins", "Penguins", "Kangaroos",
     "Zebras", "Pandas", "Bears", "Horses", "Rabbits", "Owls", "Snakes", "Crocodiles", "Foxes", "Koalas",
     "Octopuses", "Peacocks", "Squirrels", "Gorillas", "Hippopotamuses", "Ostriches", "Rhinoceroses", "Turtles",
@@ -12,4 +11,3 @@
     "Rhinoceroses", "Seals", "Crabs", "Koalas", "Donkeys", "Vultures", "Jackals", "Skunks", "Chinchillas",
     "Ibexes", "Lemurs", "Cassowaries", "Manatees", "Puffins", "Wombats", "Axolotls", "Fennec Foxes", "Ostriches"
   ]
-}
