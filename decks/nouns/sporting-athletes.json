@@ -1,5 +1,4 @@
-{
-  "deck": [
+[
     "Basketball Players", "Tennis Players", "Golfers", "Swimmers", "Soccer Players", "Runners", "Cyclists",
     "Gymnasts", "Skiers", "Surfers", "Baseball Players", "Football Players", "Hockey Players", "Figure Skaters",
     "Boxers", "Wrestlers", "Martial Artists", "Archers", "Divers", "Snowboarders", "Rowers", "Volleyball Players",
@@ -9,4 +8,3 @@
     "Polo Players", "Water Skiers", "Wakeboarders", "Ultimate Frisbee Players", "Handball Players",
     "Judo Practitioners", "Karateka", "Snooker Players", "Bowlers"
   ]
-}
