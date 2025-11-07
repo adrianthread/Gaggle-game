@@ -1,0 +1,12 @@
+{
+  "deck": [
+    "Basketball Players", "Tennis Players", "Golfers", "Swimmers", "Soccer Players", "Runners", "Cyclists",
+    "Gymnasts", "Skiers", "Surfers", "Baseball Players", "Football Players", "Hockey Players", "Figure Skaters",
+    "Boxers", "Wrestlers", "Martial Artists", "Archers", "Divers", "Snowboarders", "Rowers", "Volleyball Players",
+    "Cricketers", "Rugby Players", "Fencers", "Track and Field Athletes", "Triathletes", "Weightlifters",
+    "Synchronized Swimmers", "Equestrians", "Jockeys", "Rock Climbers", "Skaters", "Bikers", "Surfers",
+    "Skydivers", "Canoeists", "Windsurfers", "Lacrosse Players", "Table Tennis Players", "Badminton Players",
+    "Polo Players", "Water Skiers", "Wakeboarders", "Ultimate Frisbee Players", "Handball Players",
+    "Judo Practitioners", "Karateka", "Snooker Players", "Bowlers"
+  ]
+}
