@@ -12,15 +12,27 @@
   <main class="container">
     <h1>Gaggle – Funny Collective Nouns</h1>
 
-    <!-- NEW: Mode Selection -->
+    <!-- Game Mode -->
     <div class="mode-box">
       <label for="gameMode">Game Mode:</label>
       <select id="gameMode">
-        <option value="classic">Classic (1 Noun)</option>
-        <option value="scenarios">Scenarios (Noun + Scenario)</option>
+        <option value="classic">Classic</option>
+        <option value="scenarios">Scenarios</option>
       </select>
     </div>
-
+    
+    <!-- Noun Deck Selector -->
+    <div id="nounDeckBox" class="deck-selector">
+      <label>Pick Noun Deck:</label>
+      <select id="nounDeckSelect"></select>
+    </div>
+    
+    <!-- Scenario Deck Selector -->
+    <div id="scenarioDeckBox" class="deck-selector hidden">
+      <label>Pick Scenario Deck:</label>
+      <select id="scenarioDeckSelect"></select>
+    </div>
+    
     <button id="drawBtn" class="big-btn">Draw Cards</button>
 
     <div id="cardArea" class="cards"></div>
