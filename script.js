@@ -4,21 +4,10 @@ const DECK_PATHS = {
     animals: '/decks/nouns/animals.json',
     professions: '/decks/nouns/professions.json',
     'food-and-bev': '/decks/nouns/food-and-bev.json',
-    objects: '/decks/nouns/objects.json',
-    'sporting-athletes': '/decks/nouns/sporting-athletes.json',
-    'fantasy-creatures': '/decks/nouns/fantasy-creatures.json'
+    'sporting-athletes': '/decks/nouns/sporting-athletes.json'
   },
   scenarios: {
-    'physical-settings': '/decks/scenarios/physical-settings.json',
-    'emotional-states': '/decks/scenarios/emotional-states.json',
-    'family-settings': '/decks/scenarios/family-settings.json',
-    'social-gatherings': '/decks/scenarios/social-gatherings.json',
-    'fantasy-settings': '/decks/scenarios/fantasy-settings.json',
-    'historical-settings': '/decks/scenarios/historical-settings.json',
-    'artistic-settings': '/decks/scenarios/artistic-settings.json',
-    'natural-phenomenon': '/decks/scenarios/natural-phenomenon.json',
-    'transportation-modes': '/decks/scenarios/transportation-modes.json',
-    'weather-conditions': '/decks/scenarios/weather-conditions.json'
+    'physical-settings': '/decks/scenarios/physical-settings.json'
   }
 };
 
