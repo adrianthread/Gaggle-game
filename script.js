@@ -6,6 +6,7 @@ const DECK_PATHS = {
     'food-and-bev': '/decks/nouns/food-and-bev.json',
     'sporting-athletes': '/decks/nouns/sporting-athletes.json'
   },
+  // Only ONE scenario deck
   scenarios: {
     'physical-settings': '/decks/scenarios/physical-settings.json'
   }
@@ -13,24 +14,27 @@ const DECK_PATHS = {
 
 let loadedDecks = { nouns: {}, scenarios: {} };
 let selectedNounDeck = null;
-let selectedScenarioDeck = null;
 let decksLoaded = false;
+
+// Fixed scenario deck (no selector)
+const FIXED_SCENARIO_DECK = 'physical-settings';
 
 // ==== ELEMENTS ====
 let cardArea, promptEl, answerInput, resultModal;
-let gameModeSelect, nounDeckSelect, scenarioDeckSelect;
-let nounDeckBox, scenarioDeckBox;
+let gameModeSelect, nounDeckSelect;
+let nounDeckBox;
 
 // ==== LOAD DECKS ====
 async function loadAllDecks() {
   const promises = [];
 
+  // Load all noun decks
   Object.entries(DECK_PATHS.nouns).forEach(([key, path]) => {
     promises.push(
       fetch(path)
         .then(r => r.json())
         .then(data => {
-          loadedDecks.nouns[key] = data.filter(Boolean); // clean empty
+          loadedDecks.nouns[key] = data.filter(Boolean);
           if (loadedDecks.nouns[key].length === 0) loadedDecks.nouns[key] = ['?'];
         })
         .catch(err => {
@@ -40,29 +44,30 @@ async function loadAllDecks() {
     );
   });
 
-  Object.entries(DECK_PATHS.scenarios).forEach(([key, path]) => {
-    promises.push(
-      fetch(path)
-        .then(r => r.json())
-        .then(data => {
-          loadedDecks.scenarios[key] = data.filter(Boolean);
-          if (loadedDecks.scenarios[key].length === 0) loadedDecks.scenarios[key] = ['?'];
-        })
-        .catch(err => {
-          console.warn(`Failed to load scenario deck: ${key}`, err);
-          loadedDecks.scenarios[key] = ['?'];
-        })
-    );
-  });
+  // Load ONLY the fixed scenario deck
+  const scenarioPath = DECK_PATHS.scenarios[FIXED_SCENARIO_DECK];
+  promises.push(
+    fetch(scenarioPath)
+      .then(r => r.json())
+      .then(data => {
+        loadedDecks.scenarios[FIXED_SCENARIO_DECK] = data.filter(Boolean);
+        if (loadedDecks.scenarios[FIXED_SCENARIO_DECK].length === 0) {
+          loadedDecks.scenarios[FIXED_SCENARIO_DECK] = ['?'];
+        }
+      })
+      .catch(err => {
+        console.warn(`Failed to load scenario deck: ${FIXED_SCENARIO_DECK}`, err);
+        loadedDecks.scenarios[FIXED_SCENARIO_DECK] = ['?'];
+      })
+  );
 
   await Promise.all(promises);
   decksLoaded = true;
-  console.log('All decks loaded successfully');
+  console.log('All decks loaded');
 }
 
-// ==== POPULATE SELECTORS ====
-function populateSelectors() {
-  // Noun decks
+// ==== POPULATE NOUN SELECTOR ONLY ====
+function populateNounSelector() {
   nounDeckSelect.innerHTML = '';
   Object.keys(loadedDecks.nouns).forEach(key => {
     const opt = document.createElement('option');
@@ -71,16 +76,6 @@ function populateSelectors() {
     nounDeckSelect.appendChild(opt);
   });
   selectedNounDeck = nounDeckSelect.value || Object.keys(loadedDecks.nouns)[0];
-
-  // Scenario decks
-  scenarioDeckSelect.innerHTML = '';
-  Object.keys(loadedDecks.scenarios).forEach(key => {
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = formatName(key);
-    scenarioDeckSelect.appendChild(opt);
-  });
-  selectedScenarioDeck = scenarioDeckSelect.value || Object.keys(loadedDecks.scenarios)[0];
 }
 
 function formatName(key) {
@@ -104,7 +99,7 @@ function drawCards() {
   let drawn = [];
 
   const nounDeck = loadedDecks.nouns[selectedNounDeck] || ['?'];
-  const scenarioDeck = loadedDecks.scenarios[selectedScenarioDeck] || ['?'];
+  const scenarioDeck = loadedDecks.scenarios[FIXED_SCENARIO_DECK] || ['?'];
 
   if (mode === 'classic') {
     drawn = [randomItem(nounDeck)];
@@ -155,22 +150,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   resultModal = document.getElementById('resultModal');
   gameModeSelect = document.getElementById('gameMode');
   nounDeckSelect = document.getElementById('nounDeckSelect');
-  scenarioDeckSelect = document.getElementById('scenarioDeckSelect');
   nounDeckBox = document.getElementById('nounDeckBox');
-  scenarioDeckBox = document.getElementById('scenarioDeckBox');
 
   // Load decks
   await loadAllDecks();
-  populateSelectors();
+  populateNounSelector();
 
-  // === INITIAL UI STATE ===
+  // Initial UI
   const isScenarios = gameModeSelect.value === 'scenarios';
-  scenarioDeckBox.classList.toggle('hidden', !isScenarios);
+  // No scenario box to show/hide
 
   // === EVENT LISTENERS ===
   gameModeSelect.addEventListener('change', () => {
-    const isScenarios = gameModeSelect.value === 'scenarios';
-    scenarioDeckBox.classList.toggle('hidden', !isScenarios);
     cardArea.innerHTML = '';
     promptEl.classList.add('hidden');
     answerInput.value = '';
@@ -178,10 +169,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   nounDeckSelect.addEventListener('change', () => {
     selectedNounDeck = nounDeckSelect.value;
-  });
-
-  scenarioDeckSelect.addEventListener('change', () => {
-    selectedScenarioDeck = scenarioDeckSelect.value;
   });
 
   resultModal.addEventListener('click', e => {
@@ -199,26 +186,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!answer) return alert('Type something funny!');
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
-      fetch('/.netlify/functions/score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cards, answer })
-      })
-
+      // Local mock server (for dev)
       fetch('http://localhost:8888/.netlify/functions/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cards, answer })
       })
-
         .then(r => r.json())
         .then(data => {
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
-document.getElementById('commentDisplay').textContent = data.comment;
-document.getElementById('aiCollectiveText').textContent = data.aiCollective;
-resultModal.classList.remove('hidden');
-answerInput.value = '';
-})
+          document.getElementById('commentDisplay').textContent = data.comment;
+          document.getElementById('aiCollectiveText').textContent = data.aiCollective;
+          resultModal.classList.remove('hidden');
+          answerInput.value = '';
+        })
         .catch(() => alert('AI is thinking… try again!'));
     }
 
