@@ -215,6 +215,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cards, answer })
       })
+
+      fetch('http://localhost:8888/.netlify/functions/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cards, answer })
+      })
+
         .then(r => r.json())
         .then(data => {
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
