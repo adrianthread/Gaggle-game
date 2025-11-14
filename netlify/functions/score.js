@@ -109,71 +109,11 @@ Never break the three-line format.`;
   }
 
   // -----------------------------------------------------------------
-  // 3. Normal flow – return Claude + **start** DALL·E in the background
+  // 3. Normal flow – return Claude only
   // -----------------------------------------------------------------
-  const imagePromise = (async () => {
-    const imagePrompt = `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`;
-    console.log('DALL·E (background) Prompt:', imagePrompt);   // ← DEBUG
-
-    try {
-      console.log('OPENAI_API_KEY present?', !!process.env.OPENAI_API_KEY); // ← DEBUG
-
-      const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: imagePrompt,
-          size: '1024x1024',
-          quality: 'standard',
-          n: 1
-        })
-      });
-
-      console.log('DALL·E (background) Status:', imgRes.status); // ← DEBUG
-      console.log('DALL·E (background) Headers:', Object.fromEntries(imgRes.headers.entries())); // ← DEBUG
-
-      let imageData;
-      try {
-        imageData = await imgRes.json();
-      } catch (e) {
-        console.error('DALL·E JSON parse failed:', e); // ← DEBUG
-        imageData = { error: 'Invalid JSON' };
-      }
-
-      console.log('DALL·E (background) Response Body:', imageData); // ← DEBUG
-
-      if (imgRes.ok && imageData.data?.[0]?.url) {
-        console.log('DALL·E (background) Success! URL:', imageData.data[0].url); // ← DEBUG
-        return imageData.data[0].url;
-      } else {
-        console.warn('DALL·E (background) failed:', imageData.error || imageData); // ← DEBUG
-        return null;
-      }
-    } catch (imgErr) {
-      console.error('DALL·E (background) Exception:', imgErr.message); // ← DEBUG
-      return null;
-    }
-  })();
-
-  // Return Claude **immediately** – the client will show the modal now
-  const response = {
-    statusCode: 200,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ score, comment, aiCollective, imageUrl: null })
-  };
-
-  // Fire-and-forget the image (Netlify allows background work up to 10 s)
-  imagePromise.then(url => {
-    if (url) {
-      console.log('Background DALL·E completed (too late for this response):', url); // ← DEBUG
-    }
-  }).catch(err => {
-    console.error('Background DALL·E promise rejected:', err); // ← DEBUG
-  });
-
-  return response;
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score, comment, aiCollective, imageUrl: null })
+    };
 };

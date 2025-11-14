@@ -239,10 +239,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           resultModal.classList.remove('hidden');
     
           // ---------- 2. REQUEST IMAGE ONLY ----------
-          fetch('/.netlify/functions/score', {
+          fetch('/.netlify/functions/generate-image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cards, answer, imageOnly: true })
+            body: JSON.stringify({
+              prompt: `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`
+            })
           })
             .then(r => r.json())
             .then(imgData => {
