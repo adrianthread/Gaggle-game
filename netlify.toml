@@ -8,7 +8,6 @@
 [functions]
   directory = ".netlify/functions"
 
-# Allow generate-image to run up to 30 seconds
-[[functions.config]]
-  name = "generate-image"
-  timeout = 30
+  # Set timeout for generate-image only
+  [functions.generate-image]
+    timeout = 30
