@@ -1,12 +1,14 @@
+# ──────────────────────  HEADERS  ──────────────────────
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://oaidalleapiprodscus.blob.core.windows.net; connect-src 'self' https://api.anthropic.com https://api.openai.com"
 
+# ──────────────────────  FUNCTIONS  ──────────────────────
 [functions]
   directory = ".netlify/functions"
 
-# Allow this function to run up to 30 seconds
+# Allow generate-image to run up to 30 seconds
 [[functions.config]]
   name = "generate-image"
   timeout = 30
