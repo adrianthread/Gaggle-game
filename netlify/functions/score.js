@@ -56,10 +56,32 @@ Never break the three-line format.`;
     const comment = text.match(/COMMENT:\s*(.+?)(?=COLLECTIVE:|$)/is)?.[1]?.trim() ?? 'Nice try!';
     const aiCollective = text.match(/COLLECTIVE:\s*(.+?)(?:\n|$)/is)?.[1]?.trim() ?? 'a gaggle';
 
+    const imagePrompt = `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`;
+
+    // ---- DALL·E IMAGE GENERATION ----
+    //https://grok.com/share/c2hhcmQtMi1jb3B5_ce55565e-512b-4275-acaa-03917bdbd53f
+    const imageRes = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'dall-e-3',
+        prompt: imagePrompt,
+        size: '1024x1024', // Small for cost
+        quality: 'standard',
+        n: 1
+      })
+    });
+
+    const imageData = await imageRes.json();
+    const imageUrl = imageData.data[0].url; // Or b64_json for base64
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment, aiCollective }),
+      body: JSON.stringify({ score, comment, aiCollective, imageURL }),
     };
   } catch (err) {
     console.error('Function error:', err);

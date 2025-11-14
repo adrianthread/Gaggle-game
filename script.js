@@ -229,6 +229,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
           document.getElementById('commentDisplay').textContent = data.comment;
           document.getElementById('aiCollectiveText').textContent = data.aiCollective;
+          if (data.imageUrl) {
+            const img = document.createElement('img');
+            img.src = data.imageUrl;
+            img.style.width = '200px';
+            img.style.height = '200px';
+            img.style.borderRadius = '8px';
+            img.style.marginTop = '1rem';
+            document.querySelector('.modal-content').appendChild(img);
+          }
           resultModal.classList.remove('hidden');
           answerInput.value = '';
         })
