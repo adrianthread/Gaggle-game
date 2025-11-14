@@ -135,7 +135,7 @@ function renderCards(cards) {
 
   let prompt = `What do you call a gaggle of: ${cards[0]}?`;
   if (gameModeSelect.value === 'scenarios') {
-    prompt = `What do you call a gaggle of: ${cards[0]} in a ${cards[1]}?`;
+    prompt = `What do you call a gaggle of: ${cards[0]} ${cards[1]}?`;
   }
   promptEl.textContent = prompt;
   promptEl.classList.remove('hidden');
