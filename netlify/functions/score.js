@@ -63,7 +63,11 @@ Never break the three-line format.`;
   // -----------------------------------------------------------------
   if (imageOnly) {
     const imagePrompt = `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`;
+    console.log('DALL·E (imageOnly) Prompt:', imagePrompt);   // ← DEBUG
+
     try {
+      console.log('OPENAI_API_KEY present?', !!process.env.OPENAI_API_KEY); // ← DEBUG
+
       const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -79,11 +83,28 @@ Never break the three-line format.`;
         })
       });
 
-      if (imgRes.ok) {
-        const d = await imgRes.json();
-        return { statusCode: 200, body: JSON.stringify({ imageUrl: d.data[0].url }) };
+      console.log('DALL·E (imageOnly) Status:', imgRes.status); // ← DEBUG
+      console.log('DALL·E (imageOnly) Headers:', Object.fromEntries(imgRes.headers.entries())); // ← DEBUG
+
+      let imageData;
+      try {
+        imageData = await imgRes.json();
+      } catch (e) {
+        console.error('DALL·E JSON parse failed:', e); // ← DEBUG
+        imageData = { error: 'Invalid JSON' };
       }
-    } catch (_) {}
+
+      console.log('DALL·E (imageOnly) Response Body:', imageData); // ← DEBUG
+
+      if (imgRes.ok && imageData.data?.[0]?.url) {
+        console.log('DALL·E (imageOnly) Success! URL:', imageData.data[0].url); // ← DEBUG
+        return { statusCode: 200, body: JSON.stringify({ imageUrl: imageData.data[0].url }) };
+      } else {
+        console.warn('DALL·E (imageOnly) failed:', imageData.error || imageData); // ← DEBUG
+      }
+    } catch (imgErr) {
+      console.error('DALL·E (imageOnly) Exception:', imgErr.message); // ← DEBUG
+    }
     return { statusCode: 200, body: JSON.stringify({ imageUrl: null }) };
   }
 
@@ -92,7 +113,11 @@ Never break the three-line format.`;
   // -----------------------------------------------------------------
   const imagePromise = (async () => {
     const imagePrompt = `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`;
+    console.log('DALL·E (background) Prompt:', imagePrompt);   // ← DEBUG
+
     try {
+      console.log('OPENAI_API_KEY present?', !!process.env.OPENAI_API_KEY); // ← DEBUG
+
       const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
         method: 'POST',
         headers: {
@@ -108,12 +133,30 @@ Never break the three-line format.`;
         })
       });
 
-      if (imgRes.ok) {
-        const d = await imgRes.json();
-        return d.data[0].url;
+      console.log('DALL·E (background) Status:', imgRes.status); // ← DEBUG
+      console.log('DALL·E (background) Headers:', Object.fromEntries(imgRes.headers.entries())); // ← DEBUG
+
+      let imageData;
+      try {
+        imageData = await imgRes.json();
+      } catch (e) {
+        console.error('DALL·E JSON parse failed:', e); // ← DEBUG
+        imageData = { error: 'Invalid JSON' };
       }
-    } catch (_) {}
-    return null;
+
+      console.log('DALL·E (background) Response Body:', imageData); // ← DEBUG
+
+      if (imgRes.ok && imageData.data?.[0]?.url) {
+        console.log('DALL·E (background) Success! URL:', imageData.data[0].url); // ← DEBUG
+        return imageData.data[0].url;
+      } else {
+        console.warn('DALL·E (background) failed:', imageData.error || imageData); // ← DEBUG
+        return null;
+      }
+    } catch (imgErr) {
+      console.error('DALL·E (background) Exception:', imgErr.message); // ← DEBUG
+      return null;
+    }
   })();
 
   // Return Claude **immediately** – the client will show the modal now
@@ -125,8 +168,11 @@ Never break the three-line format.`;
 
   // Fire-and-forget the image (Netlify allows background work up to 10 s)
   imagePromise.then(url => {
-    // We **cannot** modify the original response, but the client will
-    // poll a tiny endpoint (or we just ignore it – the client will request it again)
+    if (url) {
+      console.log('Background DALL·E completed (too late for this response):', url); // ← DEBUG
+    }
+  }).catch(err => {
+    console.error('Background DALL·E promise rejected:', err); // ← DEBUG
   });
 
   return response;
