@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
     
-      // 1. Show Claude result instantly
+      // ---------- 1. GET CLAUDE RESULT (instant) ----------
       fetch('/.netlify/functions/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -225,30 +225,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       })
         .then(r => r.json())
         .then(data => {
-          // ---- Claude part (always present) ----
+          // ---- Show Claude instantly ----
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
           document.getElementById('commentDisplay').textContent = data.comment;
           document.getElementById('aiCollectiveText').textContent = data.aiCollective;
     
-          // ---- Image handling ----
-          const spinner = document.getElementById('imageSpinner');
+          // ---- Clean old image ----
           const oldImg = document.querySelector('.modal-content img');
-    
-          // Remove any previous image
           if (oldImg) oldImg.remove();
     
-          // If the function already returned an image URL (very rare), show it now
-          if (data.imageUrl) {
-            addImage(data.imageUrl);
-            resultModal.classList.remove('hidden');
-            return;
-          }
+          // ---- Show spinner & open modal ----
+          document.getElementById('imageSpinner').classList.remove('hidden');
+          resultModal.classList.remove('hidden');
     
-          // Otherwise show spinner and ask the function for the image
-          spinner.classList.remove('hidden');
-          resultModal.classList.remove('hidden');   // open modal now
-    
-          // 2. Second request – only for the image (fast-fail if DALL·E is down)
+          // ---------- 2. REQUEST IMAGE ONLY ----------
           fetch('/.netlify/functions/score', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -256,31 +246,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           })
             .then(r => r.json())
             .then(imgData => {
-              spinner.classList.add('hidden');
-              if (imgData.imageUrl) addImage(imgData.imageUrl);
+              document.getElementById('imageSpinner').classList.add('hidden');
+              if (imgData.imageUrl) {
+                const img = document.createElement('img');
+                img.src = imgData.imageUrl;
+                img.alt = 'AI illustration';
+                img.style.cssText = `
+                  width:200px;height:200px;border-radius:8px;
+                  margin-top:1rem;display:block;margin-left:auto;margin-right:auto;
+                `;
+                document.querySelector('.modal-content').appendChild(img);
+              }
             })
             .catch(() => {
-              spinner.classList.add('hidden');
-              // optional: show a friendly message
-              // const p = document.createElement('p');
-              // p.textContent = 'Image generation timed out.';
-              // p.style.color = '#999';
-              // document.querySelector('.modal-content').appendChild(p);
+              document.getElementById('imageSpinner').classList.add('hidden');
             });
         })
         .catch(() => alert('AI is thinking… try again!'));
-    
-      // Helper – insert the finished image
-      function addImage(url) {
-        const img = document.createElement('img');
-        img.src = url;
-        img.alt = 'AI-generated illustration';
-        img.style.cssText = `
-          width: 200px; height: 200px; border-radius: 8px;
-          margin-top: 1rem; display: block; margin-left: auto; margin-right: auto;
-        `;
-        document.querySelector('.modal-content').appendChild(img);
-      }
     }
 
     if (e.target.id === 'closeModal') {
