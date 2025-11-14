@@ -175,9 +175,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   nounDeckSelect = document.getElementById('nounDeckSelect');
   nounDeckBox = document.getElementById('nounDeckBox');
 
+    // NEW: Enter key submits
+  answerInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById('submitBtn').click();
+    }
+  });
+
   // Load decks
   await loadAllDecks();
   populateNounSelector();
+
+  // === FORCE SCENARIOS AS DEFAULT ===
+  gameModeSelect.value = 'scenarios';
 
   // === EVENT LISTENERS ===
   gameModeSelect.addEventListener('change', () => {
@@ -206,7 +217,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
 
       // Local mock server (for dev)
-      fetch('http://localhost:8888/.netlify/functions/score', {
+      // fetch('http://localhost:8888/.netlify/functions/score', {
+      // LIVE NETLIFY AI (Claude)
+      fetch('/.netlify/functions/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cards, answer })
