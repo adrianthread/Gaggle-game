@@ -258,6 +258,23 @@ h1 {
   font-style: italic;
 }
 
+/* Spinner (inside modal) */
+.image-spinner {
+  text-align: center;
+  margin: 1rem 0;
+}
+.image-spinner .spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4CAF50;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 0.5rem;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 /* Modal Updates */
 .modal-content h2 { margin-bottom: 0.5rem; }
 .score { font-size: 1.4rem; font-weight: bold; margin: 0.5rem 0; }

@@ -214,11 +214,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target.id === 'submitBtn') {
       const answer = answerInput.value.trim();
       if (!answer) return alert('Type something funny!');
+    
       const cards = Array.from(document.querySelectorAll('.card-back')).map(el => el.textContent);
-
-      // Local mock server (for dev)
-      // fetch('http://localhost:8888/.netlify/functions/score', {
-      // LIVE NETLIFY AI (Claude)
+    
+      // 1. Show Claude result instantly
       fetch('/.netlify/functions/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -226,35 +225,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       })
         .then(r => r.json())
         .then(data => {
+          // ---- Claude part (always present) ----
           document.getElementById('scoreDisplay').textContent = `Score: ${data.score}/10`;
           document.getElementById('commentDisplay').textContent = data.comment;
           document.getElementById('aiCollectiveText').textContent = data.aiCollective;
-        
-          // Remove old image
+    
+          // ---- Image handling ----
+          const spinner = document.getElementById('imageSpinner');
           const oldImg = document.querySelector('.modal-content img');
+    
+          // Remove any previous image
           if (oldImg) oldImg.remove();
-        
-          // Add new image if exists
+    
+          // If the function already returned an image URL (very rare), show it now
           if (data.imageUrl) {
-            const img = document.createElement('img');
-            img.src = data.imageUrl;
-            img.alt = 'AI-generated illustration';
-            img.style.cssText = `
-              width: 200px;
-              height: 200px;
-              border-radius: 8px;
-              margin-top: 1rem;
-              display: block;
-              margin-left: auto;
-              margin-right: auto;
-            `;
-            document.querySelector('.modal-content').appendChild(img);
+            addImage(data.imageUrl);
+            resultModal.classList.remove('hidden');
+            return;
           }
-        
-          resultModal.classList.remove('hidden');
-          answerInput.value = '';
+    
+          // Otherwise show spinner and ask the function for the image
+          spinner.classList.remove('hidden');
+          resultModal.classList.remove('hidden');   // open modal now
+    
+          // 2. Second request – only for the image (fast-fail if DALL·E is down)
+          fetch('/.netlify/functions/score', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cards, answer, imageOnly: true })
+          })
+            .then(r => r.json())
+            .then(imgData => {
+              spinner.classList.add('hidden');
+              if (imgData.imageUrl) addImage(imgData.imageUrl);
+            })
+            .catch(() => {
+              spinner.classList.add('hidden');
+              // optional: show a friendly message
+              // const p = document.createElement('p');
+              // p.textContent = 'Image generation timed out.';
+              // p.style.color = '#999';
+              // document.querySelector('.modal-content').appendChild(p);
+            });
         })
         .catch(() => alert('AI is thinking… try again!'));
+    
+      // Helper – insert the finished image
+      function addImage(url) {
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = 'AI-generated illustration';
+        img.style.cssText = `
+          width: 200px; height: 200px; border-radius: 8px;
+          margin-top: 1rem; display: block; margin-left: auto; margin-right: auto;
+        `;
+        document.querySelector('.modal-content').appendChild(img);
+      }
     }
 
     if (e.target.id === 'closeModal') {
