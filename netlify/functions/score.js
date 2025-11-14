@@ -20,13 +20,18 @@ SCORE: X/10
 COMMENT: <funny line>
 COLLECTIVE: <your guess>`;
 
-  // ──────────────────────  SYSTEM PROMPT  ──────────────────────
   const systemPrompt = `You are the snarky, pun-loving host of "Gaggle", styled after the New York Punderdome. 
 Keep every reply short, hilarious, and in-character. 
 Never break the three-line format.`;
 
+  let score = 5;
+  let comment = 'AI took a nap.';
+  let aiCollective = 'a glitch';
+  let imageUrl = null;
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // ────────  CLAUDE  ────────
+    const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'x-api-key': process.env.ANTHROPIC_API_KEY,
@@ -42,47 +47,58 @@ Never break the three-line format.`;
       }),
     });
 
-    if (!res.ok) {
-      const txt = await res.text();
-      console.error('Anthropic error:', txt);
-      throw new Error(`HTTP ${res.status}`);
-    }
+    if (!claudeRes.ok) throw new Error(`Claude HTTP ${claudeRes.status}`);
 
-    const data = await res.json();
-    const text = data.content[0].text.trim();
+    const claudeData = await claudeRes.json();
+    const text = claudeData.content[0].text.trim();
 
-    // ────────  ROBUST PARSING  ────────
-    const score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] ?? '5', 10);
-    const comment = text.match(/COMMENT:\s*(.+?)(?=COLLECTIVE:|$)/is)?.[1]?.trim() ?? 'Nice try!';
-    const aiCollective = text.match(/COLLECTIVE:\s*(.+?)(?:\n|$)/is)?.[1]?.trim() ?? 'a gaggle';
+    // Parse Claude
+    score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] ?? '5', 10);
+    comment = text.match(/COMMENT:\s*(.+?)(?=COLLECTIVE:|$)/is)?.[1]?.trim() ?? 'Nice try!';
+    aiCollective = text.match(/COLLECTIVE:\s*(.+?)(?:\n|$)/is)?.[1]?.trim() ?? 'a gaggle';
 
+    // ────────  DALL·E (SAFE)  ────────
     const imagePrompt = `A funny, engaging illustration of ${cards.join(' ')} ${answer}, cartoon style, vibrant colors, whimsical scene`;
 
-    // ---- DALL·E IMAGE GENERATION ----
-    //https://grok.com/share/c2hhcmQtMi1jb3B5_ce55565e-512b-4275-acaa-03917bdbd53f
-    const imageRes = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: imagePrompt,
-        size: '1024x1024', // Small for cost
-        quality: 'standard',
-        n: 1
-      })
-    });
+    try {
+      const imageRes = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'dall-e-3',
+          prompt: imagePrompt,
+          size: '1024x1024',
+          quality: 'standard',
+          n: 1
+        })
+      });
 
-    const imageData = await imageRes.json();
-    const imageUrl = imageData.data[0].url; // Or b64_json for base64
+      if (imageRes.ok) {
+        const imageData = await imageRes.json();
+        imageUrl = imageData.data?.[0]?.url || null;
+      } else {
+        const err = await imageRes.text();
+        console.warn('DALL·E failed (continuing without image):', err);
+      }
+    } catch (imgErr) {
+      console.warn('DALL·E error (skipping image):', imgErr.message);
+    }
 
+    // ────────  RETURN  ────────
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ score, comment, aiCollective, imageURL }),
+      body: JSON.stringify({ 
+        score, 
+        comment, 
+        aiCollective, 
+        imageUrl  // ← now safe (null if failed)
+      }),
     };
+
   } catch (err) {
     console.error('Function error:', err);
     return {
@@ -91,6 +107,7 @@ Never break the three-line format.`;
         score: 1,
         comment: 'AI took a nap.',
         aiCollective: 'a glitch',
+        imageUrl: null
       }),
     };
   }
