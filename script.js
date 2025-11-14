@@ -19,6 +19,9 @@ let decksLoaded = false;
 // Fixed scenario deck (no selector)
 const FIXED_SCENARIO_DECK = 'physical-settings';
 
+// Special key for the combined “Random” deck
+const RANDOM_DECK_KEY = 'random-all';
+
 // ==== ELEMENTS ====
 let cardArea, promptEl, answerInput, resultModal;
 let gameModeSelect, nounDeckSelect;
@@ -62,20 +65,40 @@ async function loadAllDecks() {
   );
 
   await Promise.all(promises);
+
+  // ----- BUILD RANDOM DECK (all nouns combined) -----
+  const allNouns = [];
+  Object.values(loadedDecks.nouns).forEach(deck => allNouns.push(...deck));
+  loadedDecks.nouns[RANDOM_DECK_KEY] = [...new Set(allNouns)]; // dedupe
+  if (loadedDecks.nouns[RANDOM_DECK_KEY].length === 0) {
+    loadedDecks.nouns[RANDOM_DECK_KEY] = ['?'];
+  }
+
   decksLoaded = true;
-  console.log('All decks loaded');
+  console.log('All decks loaded + Random deck built');
 }
 
-// ==== POPULATE NOUN SELECTOR ONLY ====
+// ==== POPULATE NOUN SELECTOR (with Random) ====
 function populateNounSelector() {
   nounDeckSelect.innerHTML = '';
-  Object.keys(loadedDecks.nouns).forEach(key => {
+
+  // 1. Random option first
+  const randomOpt = document.createElement('option');
+  randomOpt.value = RANDOM_DECK_KEY;
+  randomOpt.textContent = 'Random (All Decks)';
+  nounDeckSelect.appendChild(randomOpt);
+
+  // 2. Individual decks
+  Object.keys(DECK_PATHS.nouns).forEach(key => {
     const opt = document.createElement('option');
     opt.value = key;
     opt.textContent = formatName(key);
     nounDeckSelect.appendChild(opt);
   });
-  selectedNounDeck = nounDeckSelect.value || Object.keys(loadedDecks.nouns)[0];
+
+  // Default to Random
+  nounDeckSelect.value = RANDOM_DECK_KEY;
+  selectedNounDeck = RANDOM_DECK_KEY;
 }
 
 function formatName(key) {
@@ -133,9 +156,9 @@ function renderCards(cards) {
     });
   });
 
-  let prompt = `What do you call a gaggle of: ${cards[0]}?`;
+  let prompt = `What do you call a gaggle of:`;
   if (gameModeSelect.value === 'scenarios') {
-    prompt = `What do you call a gaggle of: ${cards[0]} ${cards[1]}?`;
+    prompt = `What do you call a gaggle of:`;
   }
   promptEl.textContent = prompt;
   promptEl.classList.remove('hidden');
@@ -155,10 +178,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load decks
   await loadAllDecks();
   populateNounSelector();
-
-  // Initial UI
-  const isScenarios = gameModeSelect.value === 'scenarios';
-  // No scenario box to show/hide
 
   // === EVENT LISTENERS ===
   gameModeSelect.addEventListener('change', () => {
