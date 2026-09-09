@@ -138,6 +138,16 @@ function outcomeOf(score, botScore) {
   return 'draw';
 }
 
+// The Goose is your RIVAL, so its mood runs inverse to your score: thrash it and it
+// deflates, beat it by a hair and it sulks, win and it gloats.
+function moodFor(score, botScore) {
+  const o = outcomeOf(score, botScore);
+  const diff = Math.abs(score - botScore);
+  if (o === 'win') return diff >= 3 ? 'deflated' : 'ruffled';
+  if (o === 'lose') return score <= 2 ? 'derisive' : (diff >= 3 ? 'triumphant' : 'smug');
+  return 'unimpressed';
+}
+
 function scoreBar(score, filled, empty) {
   const s = clampScore(score);
   return (filled || '🟩').repeat(s) + (empty || '⬜').repeat(10 - s);
@@ -286,6 +296,26 @@ function startApp() {
   const $ = (id) => document.getElementById(id);
   const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const shareUrl = (hash) => `${location.origin}${location.pathname}${hash || ''}`;
+
+  /* ---- the goose avatar ---- */
+  // One <template> in the markup, cloned into each host. Mood is a data attribute;
+  // all the posing is CSS, so changing it animates for free.
+  const geese = new Map();
+  function mountGoose(id, mood) {
+    if (geese.has(id)) return geese.get(id);
+    const host = $(id);
+    const tpl = $('gooseTemplate');
+    if (!host || !tpl || !tpl.content || !tpl.content.firstElementChild) return null;
+    const svg = tpl.content.firstElementChild.cloneNode(true);
+    svg.setAttribute('data-mood', mood || 'idle');
+    host.replaceChildren(svg);
+    geese.set(id, svg);
+    return svg;
+  }
+  function setMood(id, mood) {
+    const svg = geese.get(id) || mountGoose(id, mood);
+    if (svg) svg.setAttribute('data-mood', mood);
+  }
 
   /* ---- storage ---- */
   function load(key, fallback) {
@@ -517,8 +547,8 @@ function startApp() {
     $('judgeBox').hidden = !(p === 'judging' && mode === 'party');
     $('retryJudgeBtn').hidden = !state.judgeError;
     $('judgeBoxLine').textContent = state.judgeError
-      ? '🪿 The Goose flew off before judging.'
-      : `🪿 The Goose is judging ${state.answers.length} answers…`;
+      ? 'The Goose flew off before judging.'
+      : `The Goose is judging ${state.answers.length} answers…`;
     $('result').hidden = p !== 'result';
     $('podium').hidden = p !== 'podium';
     $('dailyDone').hidden = p !== 'dailyDone';
@@ -535,7 +565,7 @@ function startApp() {
       const judgeBtn = $('judgeBtn');
       judgeBtn.disabled = soloJudging;
       judgeBtn.textContent = soloJudging ? 'Judging…' : (mode === 'party' ? 'Lock in & pass →' : 'Judge it 🪿');
-      $('judgingLine').hidden = !soloJudging;
+      $('judgingWrap').hidden = !soloJudging;
       $('drawAgainBtn').hidden = !(mode === 'free' && p === 'answer');
       $('skipBtn').hidden = !(mode === 'party' && p === 'answer');
     }
@@ -707,6 +737,8 @@ function startApp() {
     const rid = state.roundId;
     state.judgeError = false;
     state.phase = 'judging';
+    // Reset the bird before the panel appears, so the verdict lands as a reaction.
+    setMood('resultGoose', 'deliberating');
     render();
     try {
       const data = await fetchJudge({ cards: state.cards, answers: state.answers, spicy: settings.spicy });
@@ -932,6 +964,7 @@ function startApp() {
         stamp.className = `stamp stamp--${outcome}`;
         stamp.hidden = false;
         panel.classList.add(`is-${outcome}`);
+        setMood('resultGoose', moodFor(score, botScore));
         const diff = Math.abs(score - botScore);
         outcomeEl.textContent = outcome === 'win'
           ? `You beat the Goose by ${diff}!`
@@ -1366,6 +1399,11 @@ function startApp() {
   }
 
   /* ---- boot ---- */
+  mountGoose('watermarkGoose', 'idle');
+  mountGoose('heroGoose', 'idle');
+  mountGoose('judgingGoose', 'deliberating');
+  mountGoose('judgeBoxGoose', 'deliberating');
+  mountGoose('resultGoose', 'deliberating');
   renderSettings();
   bind();
   render();
@@ -1385,7 +1423,7 @@ if (typeof module !== 'undefined' && module.exports) {
     EPOCH_UTC, NOUN_DECKS, SCENARIO_PATH, STORAGE, HITS, BADGES, GOOSE_NAME,
     PARTY_ROUNDS, FREE_TARGET, FREE_MAX,
     mulberry32, dayIndexFor, combinedNouns, pickDaily, msUntilMidnight, formatCountdown,
-    clampScore, bandFor, bandHeadline, badgeInfo, outcomeOf, scoreBar, cardsTitle, medal,
+    clampScore, bandFor, bandHeadline, badgeInfo, outcomeOf, moodFor, scoreBar, cardsTitle, medal,
     gooseLine, dailyShareText, roundShareText, matchShareText, partyRoundShareText, partyShareText,
     rankEntries, rankTotals, dedupeNames, answerPlaceholder, nextFreeRound,
   };

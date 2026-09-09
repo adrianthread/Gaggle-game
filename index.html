@@ -19,14 +19,15 @@
     <p class="noscript">Gaggle needs JavaScript to deal the cards. Please enable it and reload.</p>
   </noscript>
 
-  <div class="watermark" aria-hidden="true">🪿</div>
+  <div class="watermark" id="watermarkGoose" aria-hidden="true"></div>
 
   <main class="app" id="app">
 
     <!-- ============ HOME ============ -->
     <section id="home" class="screen screen--home">
       <header class="hero">
-        <h1 class="wordmark"><span class="wordmark-goose" aria-hidden="true">🪿</span> Gaggle</h1>
+        <div class="hero-goose" id="heroGoose"></div>
+        <h1 class="wordmark">Gaggle</h1>
         <p class="tagline">Draw two cards. Invent the collective noun. The Goose judges.</p>
       </header>
 
@@ -103,7 +104,10 @@
           <p class="field-error" id="answerError" hidden>Type something first</p>
           <button id="judgeBtn" class="btn btn-primary btn-block" type="submit">Judge it 🪿</button>
         </form>
-        <p class="judging-line" id="judgingLine" hidden>🪿 The Goose is deliberating…</p>
+        <div class="judging-wrap" id="judgingWrap" hidden>
+          <div class="judging-goose" id="judgingGoose"></div>
+          <p class="judging-line" id="judgingLine">The Goose is deliberating…</p>
+        </div>
         <div class="answer-extras">
           <button id="drawAgainBtn" class="btn-ghost" type="button" hidden>Draw again 🔁</button>
           <button id="skipBtn" class="btn-ghost" type="button" hidden>skip this round</button>
@@ -111,14 +115,15 @@
       </section>
 
       <section id="judgeBox" class="panel judge-box" hidden>
-        <p class="judging-line" id="judgeBoxLine">🪿 The Goose is judging…</p>
+        <div class="judging-goose judging-goose--big" id="judgeBoxGoose"></div>
+        <p class="judging-line" id="judgeBoxLine">The Goose is judging…</p>
         <button id="retryJudgeBtn" class="btn btn-secondary btn-block" type="button" hidden>Try again</button>
       </section>
 
       <!-- Solo result panel -->
       <section id="result" class="panel result" hidden aria-live="polite">
         <header class="result-head">
-          <span class="result-goose" id="resultGoose" aria-hidden="true">🪿</span>
+          <span class="result-goose" id="resultGoose"></span>
           <h2 class="result-verdict" id="resultVerdict"></h2>
         </header>
 
@@ -247,6 +252,36 @@
   </div>
 
   <div id="toast" class="toast" role="status" hidden></div>
+
+  <!-- The Goose. One bird, articulated at the joints; CSS poses it by [data-mood].
+       Faceless by design — all the acting is neck angle, wing and lean. -->
+  <template id="gooseTemplate">
+    <svg class="goose" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+      <g class="goose-lean">
+        <g class="goose-legs">
+          <path d="M52 97 L50 110" /><path d="M64 97 L66 110" />
+          <path d="M43 110 L57 110" /><path d="M59 110 L73 110" />
+        </g>
+        <g class="goose-tail"><path d="M33 72 L12 65 L32 85 Z" /></g>
+        <ellipse class="goose-belly" cx="56" cy="80" rx="30" ry="22" />
+        <g class="goose-neck">
+          <path class="goose-neck-ink" d="M70 73 Q79 55 84 39" />
+          <path class="goose-neck-line" d="M70 73 Q79 55 84 39" />
+          <g class="goose-head">
+            <ellipse class="goose-skull" cx="84" cy="34" rx="11.5" ry="10" />
+            <g class="goose-wig">
+              <path class="goose-wig-cap" d="M71 31 Q72 15 84 14 Q96 15 97 31 Q91 23 84 23 Q77 23 71 31 Z" />
+              <circle cx="71.5" cy="33" r="4.3" /><circle cx="72" cy="40.5" r="3.7" />
+            </g>
+            <path class="goose-beak" d="M93 30 L109 33 L93 36 Z" />
+            <path class="goose-beak-lower" d="M93 36 L107 35.5 L93 40 Z" />
+            <circle class="goose-eye" cx="86.5" cy="30" r="1.9" />
+          </g>
+        </g>
+        <g class="goose-wing"><path d="M39 67 Q62 61 75 76 Q59 91 41 86 Z" /></g>
+      </g>
+    </svg>
+  </template>
 
   <script src="script.js"></script>
 </body>

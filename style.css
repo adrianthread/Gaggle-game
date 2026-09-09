@@ -79,11 +79,12 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 
 .watermark {
   position: fixed;
-  bottom: -8vw;
-  right: -6vw;
-  font-size: 40vw;
+  bottom: -10vw;
+  right: -8vw;
+  width: 60vw;
+  max-width: 420px;
   line-height: 1;
-  opacity: 0.12;
+  opacity: 0.13;
   pointer-events: none;
   user-select: none;
   z-index: 0;
@@ -176,18 +177,7 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
   align-items: center;
   gap: 0.15em;
 }
-.wordmark-goose {
-  display: inline-block;
-  font-size: 0.85em;
-  text-shadow: none;
-  animation: honk 6s ease-in-out infinite;
-  transform-origin: 60% 80%;
-}
-@keyframes honk {
-  0%, 92%, 100% { transform: rotate(0deg); }
-  95% { transform: rotate(-8deg); }
-  98% { transform: rotate(4deg); }
-}
+.hero-goose { width: min(38vw, 132px); margin: 0 auto 0.35rem; }
 
 .tagline {
   margin-top: 0.4rem;
@@ -443,6 +433,10 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
   margin-top: 0.8rem;
   animation: pulse 1.2s ease-in-out infinite;
 }
+.judging-wrap { display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.8rem; }
+.judging-wrap .judging-line { margin-top: 0; }
+.judging-goose { width: 48px; flex-shrink: 0; }
+.judging-goose--big { width: 76px; margin: 0 auto 0.4rem; }
 @keyframes pulse { 50% { opacity: 0.45; } }
 
 .answer-extras { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
@@ -457,13 +451,7 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 @keyframes pop-in { from { transform: translateY(24px) scale(0.96); opacity: 0; } }
 
 .result-head { display: flex; align-items: center; gap: 0.6rem; }
-.result-goose { font-size: 2.2rem; line-height: 1; display: inline-block; }
-.result.sad .result-goose { animation: wobble 0.9s ease-in-out 1.4s 2; }
-@keyframes wobble {
-  0%, 100% { transform: rotate(0); }
-  25% { transform: rotate(-14deg) translateY(2px); }
-  75% { transform: rotate(12deg) translateY(2px); }
-}
+.result-goose { width: 66px; flex-shrink: 0; display: block; }
 .result-verdict {
   font-family: var(--display);
   font-size: clamp(1.8rem, 8vw, 2.6rem);
@@ -778,11 +766,114 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- The Goose ----------
+   One articulated bird. No face: every mood is neck angle, wing, lean and wig.
+   Poses are pure CSS keyed off [data-mood]; the transition does the acting. */
+.goose { display: block; width: 100%; height: auto; overflow: visible; }
+.goose g, .goose .goose-beak-lower {
+  transform-box: view-box;
+  transition: transform 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.25);
+}
+
+/* joints */
+.goose-lean { transform-origin: 56px 110px; }   /* pivots on the feet */
+.goose-neck { transform-origin: 70px 73px; }    /* where neck meets body */
+.goose-head { transform-origin: 84px 39px; }    /* top of the neck */
+.goose-wing { transform-origin: 47px 70px; }    /* shoulder */
+.goose-tail { transform-origin: 34px 76px; }
+.goose-wig { transform-origin: 84px 24px; }
+.goose-beak-lower { transform-origin: 93px 37px; }
+
+/* paint: white bird, ink outline (reads on both the pink and the white panels) */
+.goose-belly, .goose-skull, .goose-tail path, .goose-wing path {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.goose-wing path { fill: #f2e6ec; }
+.goose-neck-ink { fill: none; stroke: var(--ink); stroke-width: 16; stroke-linecap: round; }
+.goose-neck-line { fill: none; stroke: var(--surface); stroke-width: 11; stroke-linecap: round; }
+.goose-beak, .goose-beak-lower { fill: var(--goose); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.goose-legs path { fill: none; stroke: var(--goose-dark); stroke-width: 4.5; stroke-linecap: round; }
+.goose-eye { fill: var(--ink); }
+/* the barrister's wig has to read as a separate object at 60px, so it's grey, not white */
+.goose-wig { fill: #cec6de; stroke: var(--ink); stroke-width: 2; }
+
+/* ---- moods ---- */
+/* idle: pottering about, waiting for someone to play */
+.goose[data-mood='idle'] .goose-lean { animation: goose-bob 3.4s ease-in-out infinite; }
+/* ...but the 60vw background bird holds still: it's decoration, not a character beat */
+.watermark .goose-lean { animation: none; }
+
+/* watching: cards are down, head cocked */
+.goose[data-mood='watching'] .goose-neck { transform: rotate(5deg); }
+.goose[data-mood='watching'] .goose-head { transform: rotate(-13deg); }
+
+/* deliberating: craned over an unseen clipboard */
+.goose[data-mood='deliberating'] .goose-neck { transform: rotate(26deg); animation: goose-ponder 2.6s ease-in-out infinite; }
+.goose[data-mood='deliberating'] .goose-head { transform: rotate(12deg); }
+
+/* deflated: you thrashed it. wig on the floor */
+.goose[data-mood='deflated'] .goose-lean { transform: translateY(7px) scaleY(0.93) rotate(-3deg); }
+.goose[data-mood='deflated'] .goose-neck { transform: rotate(54deg) translate(2px, 5px); }
+.goose[data-mood='deflated'] .goose-head { transform: rotate(20deg); }
+.goose[data-mood='deflated'] .goose-wing { transform: rotate(16deg) translateY(6px); }
+.goose[data-mood='deflated'] .goose-tail { transform: rotate(14deg); }
+.goose[data-mood='deflated'] .goose-wig { transform: translate(-17px, 35px) rotate(-74deg); }
+
+/* ruffled: you nicked it by one and it is not letting that go */
+.goose[data-mood='ruffled'] .goose-neck { transform: rotate(-7deg); }
+.goose[data-mood='ruffled'] .goose-head { transform: rotate(-5deg); }
+.goose[data-mood='ruffled'] .goose-wing { transform: rotate(-26deg) translate(-2px, -3px); }
+.goose[data-mood='ruffled'] .goose-tail { transform: rotate(-16deg); }
+.goose[data-mood='ruffled'] .goose-wig { transform: rotate(-21deg) translate(-4px, 1px); }
+
+/* unimpressed: a draw. bolt upright, rigid, staring directly at you */
+.goose[data-mood='unimpressed'] .goose-lean { transform: translateY(-3px) scaleY(1.04); }
+.goose[data-mood='unimpressed'] .goose-neck { transform: rotate(-11deg); }
+.goose[data-mood='unimpressed'] .goose-head { transform: rotate(4deg); }
+.goose[data-mood='unimpressed'] .goose-wing { transform: rotate(4deg) translateX(2px); }
+
+/* smug: the S-curve. chest out, beak up */
+.goose[data-mood='smug'] .goose-lean { transform: translateY(-2px); }
+.goose[data-mood='smug'] .goose-neck { transform: rotate(-21deg); }
+.goose[data-mood='smug'] .goose-head { transform: rotate(15deg); }
+.goose[data-mood='smug'] .goose-wing { transform: rotate(6deg) translateX(3px); }
+
+/* triumphant: wings out, head back, honking */
+.goose[data-mood='triumphant'] .goose-lean { transform: translateY(-4px) scale(1.04); }
+.goose[data-mood='triumphant'] .goose-neck { transform: rotate(-31deg); }
+.goose[data-mood='triumphant'] .goose-head { transform: rotate(26deg); }
+/* no fill-mode: it flaps, then settles into the declared spread below */
+.goose[data-mood='triumphant'] .goose-wing { transform: rotate(-49deg) translate(4px, -13px); animation: goose-flap 0.5s ease-in-out 4; }
+.goose[data-mood='triumphant'] .goose-beak-lower { transform: rotate(19deg) translateY(2px); }
+
+/* derisive: 1-2/10. right in your face */
+.goose[data-mood='derisive'] .goose-lean { transform: scale(1.06) translateX(3px); }
+.goose[data-mood='derisive'] .goose-neck { transform: rotate(31deg) translateX(5px); animation: goose-honk 0.42s ease-in-out 3; }
+.goose[data-mood='derisive'] .goose-head { transform: rotate(-6deg); }
+.goose[data-mood='derisive'] .goose-beak-lower { transform: rotate(22deg) translateY(2px); }
+
+@keyframes goose-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes goose-ponder { 0%, 100% { transform: rotate(26deg); } 50% { transform: rotate(32deg); } }
+@keyframes goose-flap {
+  0%, 100% { transform: rotate(-64deg) translate(-6px, -8px); }
+  50% { transform: rotate(-42deg) translate(-3px, -3px); }
+}
+@keyframes goose-honk {
+  0%, 100% { transform: rotate(31deg) translateX(4px); }
+  50% { transform: rotate(38deg) translateX(8px); }
+}
+
 /* ---------- motion & responsive ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001s !important; animation-iteration-count: 1 !important; transition-duration: 0.001s !important; }
   .card-inner { transition: none; }
-  .wordmark-goose, .judging-line, .skeleton, .cards.judging .card-back::after { animation: none; }
+  .judging-line, .skeleton, .cards.judging .card-back::after { animation: none; }
+  /* the goose still changes pose, it just stops tweening and idling */
+  .goose[data-mood='idle'] .goose-lean,
+  .goose[data-mood='deliberating'] .goose-neck { animation: none; }
   .badge-chip { transform: none; }
   .quip { opacity: 1; }
 }
