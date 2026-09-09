@@ -2,69 +2,251 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gaggle – Funny Collective Nouns</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Gaggle</title>
+  <meta name="description" content="Draw two cards. Invent the collective noun. The Goose judges." />
+  <meta name="theme-color" content="#ff8fab" />
+  <meta name="apple-mobile-web-app-title" content="Gaggle" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%F0%9F%AA%BF%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="data:,">
 </head>
 <body>
-  <main class="container">
-    <h1>Gaggle</h1>
+  <noscript>
+    <p class="noscript">Gaggle needs JavaScript to deal the cards. Please enable it and reload.</p>
+  </noscript>
 
-    <!-- Game Mode -->
-    <div class="mode-box">
-      <label for="gameMode">Game Mode:</label>
-      <select id="gameMode">
-        <option value="classic">Classic</option>
-        <option value="scenarios" selected>Scenarios</option>
-      </select>
-    </div>
-    
-    <!-- Noun Deck Selector -->
-    <div id="nounDeckBox" class="deck-selector">
-      <label>Pick Noun Deck:</label>
-      <select id="nounDeckSelect"></select>
-    </div>
-    
-    <!-- Scenario Deck Selector (hidden by default in Classic mode) -->
-    <!-- <div id="scenarioDeckBox" class="deck-selector hidden">
-      <label>Pick Scenario Deck:</label>
-      <select id="scenarioDeckSelect"></select>
-    </div> -->
-    
-    <button id="drawBtn" class="big-btn">Draw Cards</button>
+  <div class="watermark" aria-hidden="true">🪿</div>
 
-    <div id="prompt" class="prompt hidden"></div>
+  <main class="app" id="app">
 
-    <div id="cardArea" class="cards"></div>
+    <!-- ============ HOME ============ -->
+    <section id="home" class="screen screen--home">
+      <header class="hero">
+        <h1 class="wordmark"><span class="wordmark-goose" aria-hidden="true">🪿</span> Gaggle</h1>
+        <p class="tagline">Draw two cards. Invent the collective noun. The Goose judges.</p>
+      </header>
 
-    <div class="answer-box">
-      <input type="text" id="answerInput" placeholder="Your clever collective noun…" />
-      <button id="submitBtn" class="big-btn">Submit Answer</button>
-    </div>
+      <nav class="modes" aria-label="Ways to play">
+        <button id="dailyBtn" class="mode-btn mode-btn--daily" type="button">
+          <span class="mode-title">Today's Gaggle</span>
+          <span class="mode-sub" id="dailySub">#—</span>
+        </button>
+        <button id="freeBtn" class="mode-btn" type="button">
+          <span class="mode-title">Free play vs the Goose</span>
+          <span class="mode-sub">best of 5</span>
+        </button>
+        <button id="partyBtn" class="mode-btn" type="button">
+          <span class="mode-title">Party</span>
+          <span class="mode-sub">pass the phone · 2–8 players</span>
+        </button>
+      </nav>
 
-    <!-- Result Modal -->
-    <div id="resultModal" class="modal hidden">
-      <div class="modal-content">
-        <h3>AI Judge Says:</h3>
-        <p id="scoreDisplay"></p>
-        <p id="commentDisplay" class="italic"></p>
-        <div id="aiCollectiveLine" class="ai-collective-line">
-          <strong>AI’s Guess:</strong> <span id="aiCollectiveText"></span>
+      <details class="settings" id="settings">
+        <summary class="settings-pill">⚙ Decks</summary>
+        <div class="settings-body">
+          <p class="settings-label">Noun decks for free play &amp; party</p>
+          <div class="deck-toggles" id="deckToggles"></div>
+          <label class="toggle-row">
+            <input type="checkbox" id="spicyToggle" />
+            <span>🌶 Spicy judge</span>
+            <small>ruder verdicts, same rules</small>
+          </label>
+          <label class="name-row">
+            <span>Your name</span>
+            <input type="text" id="soloName" maxlength="24" autocomplete="nickname" placeholder="You" />
+          </label>
         </div>
-    
-        <!-- NEW: spinner container -->
-        <div id="imageSpinner" class="image-spinner hidden">
-          <div class="spinner"></div>
-          <p>Creating a picture…</p>
-        </div>
-    
-        <button id="closeModal" class="small-btn">Close</button>
-        <button id="shareBtn" class="small-btn">Share Score</button>
+      </details>
+
+      <p class="home-foot" id="homeStats" hidden></p>
+    </section>
+
+    <!-- ============ PARTY SETUP ============ -->
+    <section id="setup" class="screen" hidden>
+      <div class="topbar">
+        <button class="btn-ghost home-link" type="button" data-home>‹ Home</button>
+        <span class="tally">Party · 3 rounds</span>
       </div>
-    </div>
+      <div class="panel">
+        <h2 class="panel-title">Who's playing?</h2>
+        <div id="playerList" class="player-list"></div>
+        <button id="addPlayerBtn" class="btn btn-secondary btn-block" type="button">+ add player</button>
+        <div id="recentChips" class="chips" hidden></div>
+        <p class="hint">2–8 players. Everyone answers the same cards, then the Goose ranks the lot.</p>
+        <button id="startPartyBtn" class="btn btn-primary btn-block" type="button" disabled>Start 🪿</button>
+      </div>
+    </section>
+
+    <!-- ============ GAME (daily / free / party) ============ -->
+    <section id="game" class="screen" hidden>
+      <div class="topbar">
+        <button class="btn-ghost home-link" type="button" data-home>‹ Home</button>
+        <span class="tally" id="tally" aria-live="polite"></span>
+      </div>
+
+      <div id="cardArea" class="cards" aria-live="polite"></div>
+
+      <div id="drawStage" class="draw-stage">
+        <button id="drawBtn" class="btn btn-primary btn-big" type="button" disabled>Shuffling…</button>
+      </div>
+
+      <section id="answerStage" class="panel answer-stage" hidden>
+        <p class="prompt" id="promptText"></p>
+        <form id="answerForm" class="answer-form" autocomplete="off" novalidate>
+          <input type="text" id="answerInput" class="answer-input" maxlength="80"
+                 placeholder="a ___ of …" enterkeyhint="send" autocomplete="off"
+                 autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Your collective noun" />
+          <p class="field-error" id="answerError" hidden>Type something first</p>
+          <button id="judgeBtn" class="btn btn-primary btn-block" type="submit">Judge it 🪿</button>
+        </form>
+        <p class="judging-line" id="judgingLine" hidden>🪿 The Goose is deliberating…</p>
+        <div class="answer-extras">
+          <button id="drawAgainBtn" class="btn-ghost" type="button" hidden>Draw again 🔁</button>
+          <button id="skipBtn" class="btn-ghost" type="button" hidden>skip this round</button>
+        </div>
+      </section>
+
+      <section id="judgeBox" class="panel judge-box" hidden>
+        <p class="judging-line" id="judgeBoxLine">🪿 The Goose is judging…</p>
+        <button id="retryJudgeBtn" class="btn btn-secondary btn-block" type="button" hidden>Try again</button>
+      </section>
+
+      <!-- Solo result panel -->
+      <section id="result" class="panel result" hidden aria-live="polite">
+        <header class="result-head">
+          <span class="result-goose" id="resultGoose" aria-hidden="true">🪿</span>
+          <h2 class="result-verdict" id="resultVerdict"></h2>
+        </header>
+
+        <div class="score-row score-row--you">
+          <span class="who" id="resultWho">You</span>
+          <q class="answer" id="resultAnswer"></q>
+          <span class="score"><b id="resultScoreNum">0</b><small>/10</small></span>
+          <div class="bar"><i id="resultBar"></i></div>
+        </div>
+
+        <div class="hits" id="resultHits"></div>
+        <p class="badge-chip" id="resultBadge"></p>
+        <p class="quip" id="resultQuip"></p>
+
+        <div class="goose-wrap">
+          <div class="score-row score-row--goose is-hidden" id="gooseRow">
+            <span class="who">🪿 The Goose</span>
+            <q class="answer" id="gooseAnswer"></q>
+            <span class="score"><b id="gooseScore">0</b><small>/10</small></span>
+            <div class="bar"><i id="gooseBar"></i></div>
+          </div>
+        </div>
+
+        <div class="stamp-wrap"><span class="stamp" id="resultStamp" hidden></span></div>
+        <p class="outcome" id="resultOutcome"></p>
+
+        <figure class="result-img" id="resultImg" hidden>
+          <div class="skeleton">🪿 painting…</div>
+        </figure>
+
+        <div class="result-actions">
+          <button id="resultPrimaryBtn" class="btn btn-primary" type="button">Share</button>
+          <button id="resultSecondaryBtn" class="btn btn-secondary" type="button">Home</button>
+        </div>
+        <div class="confetti" id="resultConfetti" aria-hidden="true"></div>
+      </section>
+
+      <!-- Daily already played -->
+      <section id="dailyDone" class="panel result daily-done" hidden>
+        <header class="result-head">
+          <span class="result-goose" aria-hidden="true">✓</span>
+          <h2 class="result-verdict" id="doneVerdict"></h2>
+        </header>
+        <p class="done-sub" id="doneSub"></p>
+        <div class="score-row score-row--you">
+          <span class="who">You</span>
+          <q class="answer" id="doneAnswer"></q>
+          <span class="score"><b id="doneScore">0</b><small>/10</small></span>
+          <div class="bar"><i id="doneBar"></i></div>
+        </div>
+        <p class="badge-chip" id="doneBadge"></p>
+        <p class="outcome" id="doneOutcome"></p>
+        <p class="done-meta" id="doneMeta"></p>
+        <p class="countdown">Next Gaggle in <b id="doneCountdown">—</b></p>
+        <div class="result-actions">
+          <button id="doneShareBtn" class="btn btn-primary" type="button">Share</button>
+          <button class="btn btn-secondary" type="button" data-home>Home</button>
+        </div>
+      </section>
+
+      <!-- Party podium -->
+      <section id="podium" class="panel podium" hidden aria-live="polite">
+        <h2 class="panel-title" id="podiumTitle">Round 1 results</h2>
+        <ol id="rankList" class="rank"></ol>
+        <p class="podium-tally" id="podiumTally"></p>
+        <figure class="result-img" id="podiumImg" hidden>
+          <div class="skeleton">🪿 painting…</div>
+        </figure>
+        <div class="result-actions">
+          <button id="podiumNextBtn" class="btn btn-primary" type="button">Next round →</button>
+          <button id="podiumShareBtn" class="btn btn-secondary" type="button">Share round</button>
+        </div>
+        <div class="confetti" id="podiumConfetti" aria-hidden="true"></div>
+      </section>
+    </section>
+
+    <!-- ============ FREE PLAY MATCH RESULT ============ -->
+    <section id="match" class="screen" hidden>
+      <div class="topbar">
+        <button class="btn-ghost home-link" type="button" data-home>‹ Home</button>
+        <span class="tally">Best of 5</span>
+      </div>
+      <div class="panel match-panel">
+        <span class="match-emoji" id="matchEmoji" aria-hidden="true">🏆</span>
+        <h2 class="result-verdict" id="matchTitle"></h2>
+        <p class="match-sub" id="matchSub"></p>
+        <p class="done-meta" id="matchStats"></p>
+        <div class="result-actions">
+          <button id="matchShareBtn" class="btn btn-primary" type="button">Share</button>
+          <button id="rematchBtn" class="btn btn-secondary" type="button">Rematch</button>
+        </div>
+        <div class="confetti" id="matchConfetti" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- ============ PARTY CHAMPION ============ -->
+    <section id="champion" class="screen" hidden>
+      <div class="topbar">
+        <button class="btn-ghost home-link" type="button" data-home>‹ Home</button>
+        <span class="tally">Party · final</span>
+      </div>
+      <div class="panel champ-panel">
+        <span class="match-emoji" aria-hidden="true">🏆</span>
+        <h2 class="result-verdict" id="champTitle"></h2>
+        <p class="match-sub" id="champSub"></p>
+        <ol id="champList" class="rank rank--totals"></ol>
+        <p class="best-line" id="champBest"></p>
+        <div class="result-actions result-actions--stack">
+          <button id="champShareBtn" class="btn btn-primary" type="button">Share</button>
+          <button id="samePlayersBtn" class="btn btn-secondary" type="button">Same players, new game</button>
+          <button id="changePlayersBtn" class="btn btn-secondary" type="button">Change players</button>
+        </div>
+        <div class="confetti" id="champConfetti" aria-hidden="true"></div>
+      </div>
+    </section>
   </main>
+
+  <!-- Party curtain: fixed, opaque, hides the previous answer -->
+  <div id="curtain" class="curtain" hidden>
+    <p class="eyebrow">Pass the phone to</p>
+    <h2 class="curtain-name" id="curtainName"></h2>
+    <p class="curtain-count" id="curtainCount"></p>
+    <button id="curtainOkBtn" class="btn btn-primary btn-big" type="button">I'm ready</button>
+    <p class="curtain-tally" id="curtainTally"></p>
+    <button id="curtainQuitBtn" class="btn-ghost curtain-quit" type="button">quit game</button>
+  </div>
+
+  <div id="toast" class="toast" role="status" hidden></div>
 
   <script src="script.js"></script>
 </body>
