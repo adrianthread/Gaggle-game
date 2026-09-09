@@ -1,13 +1,26 @@
-# ──────────────────────  HEADERS  ──────────────────────
+# Static site is the repo root; functions live in netlify/functions (the SOURCE dir — not .netlify/functions,
+# which is Netlify's build output).
+[build]
+  publish = "."
+  command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # NOTE: function timeouts are NOT configurable here (netlify.toml has no `timeout` key). Synchronous
+  # functions get Netlify's default 10 s (26 s on request via support). Haiku usually answers in 2-5 s;
+  # lib/judge.js aborts its own call at 25 s.
+
+# One front-end path everywhere: /api/judge -> the Netlify function.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+  force = true
+
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://oaidalleapiprodscus.blob.core.windows.net; connect-src 'self' https://api.anthropic.com https://api.openai.com"
-
-# ──────────────────────  FUNCTIONS  ──────────────────────
-[functions]
-  directory = ".netlify/functions"
-
-  # Set timeout for generate-image only
-  [functions.generate-image]
-    timeout = 30
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://image.pollinations.ai; connect-src 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

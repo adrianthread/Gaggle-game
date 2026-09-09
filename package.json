@@ -1,0 +1,12 @@
+{
+  "name": "gaggle-game",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Gaggle — the AI-judged collective-noun party game. No dependencies, no build step.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node server.js --mock",
+    "test": "node --test"
+  }
+}
