@@ -49,6 +49,22 @@ npm run mock
 
 Runs a fake judge with realistic, varied scores (distinct in party mode, plausible bot answers, real pictures). Every screen works; nothing costs anything. The response carries `"mock": true` so you can't mistake it for the real Goose.
 
+### Play from your phone when you're away from the laptop
+
+`npm start` only reaches phones on the same Wi-Fi. To play from anywhere while the laptop stays on, open a free tunnel next to it (no account needed):
+
+```bash
+# terminal 1
+npm start
+
+# terminal 2 — Cloudflare quick tunnel
+npx --yes cloudflared tunnel --url http://localhost:3000
+```
+
+It prints a URL like `https://random-words.trycloudflare.com` — open that on your phone. Notes: the URL changes every time you start the tunnel (re-share it), the laptop must stay awake, and because it's `https` the phone's native Share sheet works too. Prefer a permanent `cloudflared` install? `brew install cloudflared` (macOS) or `winget install Cloudflare.cloudflared` (Windows), then the same `cloudflared tunnel --url http://localhost:3000`.
+
+If you'd rather not keep a laptop on, deploy once to Vercel (next section) and it's always up.
+
 ---
 
 ## Deploy for free (play from anywhere)
