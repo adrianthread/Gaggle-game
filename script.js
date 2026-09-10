@@ -85,10 +85,33 @@ function combinedNouns(decksByKey) {
   return out;
 }
 
-function pickDaily(dayIndex, nouns, scenarios) {
+// The daily pair must be identical for everyone, so its difficulty can't come from a local
+// setting. The date rolls it instead: 70% easy, 20% medium, 10% hard.
+const DAILY_MIX = [['easy', 0.7], ['medium', 0.9], ['hard', 1]];
+
+function dailyTier(roll) {
+  for (const [tier, ceiling] of DAILY_MIX) if (roll < ceiling) return tier;
+  return 'hard';
+}
+
+// Subset of `all` in the given tier; 'medium' means listed in neither easy nor hard.
+// Falls back to the whole list when tiers are unavailable, so a missing difficulty.json
+// degrades to a uniform draw rather than an empty one.
+function tierPool(all, tier, lists) {
+  if (!tier || !lists) return all;
+  const pool = tier === 'medium'
+    ? all.filter((n) => !matchesTier(n, 'easy', lists) && !matchesTier(n, 'hard', lists))
+    : all.filter((n) => matchesTier(n, tier, lists));
+  return pool.length ? pool : all;
+}
+
+function pickDaily(dayIndex, nouns, scenarios, tiers) {
   const rng = mulberry32(dayIndex);
-  const noun = nouns[Math.floor(rng() * nouns.length)];
-  const scenario = scenarios[Math.floor(rng() * scenarios.length)];
+  const tier = dailyTier(rng());
+  const nounPool = tierPool(nouns, tier, tiers && tiers.nouns);
+  const scnPool = tierPool(scenarios, tier, tiers && tiers.scenarios);
+  const noun = nounPool[Math.floor(rng() * nounPool.length)];
+  const scenario = scnPool[Math.floor(rng() * scnPool.length)];
   return [noun, scenario];
 }
 
@@ -715,7 +738,7 @@ function startApp() {
     let tags;
     if (state.mode === 'daily') {
       state.dailyIndex = dayIndexFor();
-      cards = pickDaily(state.dailyIndex, combinedNouns(decks.nouns), decks.scenarios);
+      cards = pickDaily(state.dailyIndex, combinedNouns(decks.nouns), decks.scenarios, decks.tiers);
       tags = [deckLabelOf(cards[0]), 'Scenario'];
     } else {
       // The daily deliberately ignores difficulty above: everyone must get the same pair.
@@ -1494,7 +1517,7 @@ if (typeof module !== 'undefined' && module.exports) {
     EPOCH_UTC, NOUN_DECKS, SCENARIO_PATH, STORAGE, HITS, BADGES, GOOSE_NAME,
     PARTY_ROUNDS, FREE_TARGET, FREE_MAX,
     mulberry32, dayIndexFor, combinedNouns, pickDaily, msUntilMidnight, formatCountdown,
-    DIFFICULTIES, matchesTier, tierForRound, diffHintText,
+    DIFFICULTIES, DAILY_MIX, matchesTier, tierForRound, tierPool, dailyTier, diffHintText,
     clampScore, bandFor, bandHeadline, badgeInfo, outcomeOf, moodFor, scoreBar, cardsTitle, medal,
     gooseLine, dailyShareText, roundShareText, matchShareText, partyRoundShareText, partyShareText,
     rankEntries, rankTotals, dedupeNames, answerPlaceholder, nextFreeRound,
