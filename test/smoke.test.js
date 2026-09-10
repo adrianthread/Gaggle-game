@@ -483,6 +483,29 @@ test('judge() party: when the bot beats every player the picture is the bot answ
   assert.equal(new URL(out.imageUrl).searchParams.get('seed'), new URL(seeded).searchParams.get('seed'), 'seed derives from the pictured answer');
 });
 
+test('alternatives are capped at 2, deduped, and never echo the bot or a player', async () => {
+  const input = { cards: ['Plumbers', 'At a Press Conference'], answers: [{ name: 'Ade', answer: 'a leak of plumbers' }], spicy: false };
+  const out = await judge(input, { mock: false, apiKey: 'k', fetch: reply({
+    ...SINGLE_REPLY,
+    bot_answer: 'a blockage of plumbers',
+    alternatives: ['a flush of plumbers', 'A LEAK OF PLUMBERS', 'a blockage of plumbers', 'a flush of plumbers', 'a drain of plumbers'],
+  }) });
+  assert.deepEqual(out.alternatives, ['a flush of plumbers', 'a drain of plumbers'], 'player echo, bot echo and duplicate removed');
+  // absent / malformed / non-string entries degrade to an empty list, never undefined
+  for (const alt of [undefined, 'not an array', [], [null, 42, '   ']]) {
+    const r = await judge(input, { mock: false, apiKey: 'k', fetch: reply({ ...SINGLE_REPLY, alternatives: alt }) });
+    assert.deepEqual(r.alternatives, [], `alternatives: ${JSON.stringify(alt)}`);
+  }
+  // and the prompt actually asks for them
+  assert.match(buildPrompts(input).user, /alternatives/);
+});
+
+test('mock mode supplies alternatives so the reveal can be exercised without a key', async () => {
+  const d = await (await post('/api/judge', { cards: CARDS, answers: [{ name: 'A', answer: 'a wake of penguins' }] })).json();
+  assert.ok(Array.isArray(d.alternatives) && d.alternatives.length === 2, 'two mock alternatives');
+  assert.ok(d.alternatives.every((a) => typeof a === 'string' && a.includes(' of ')));
+});
+
 // ---------------------------------------------------------------------------
 // handleJudgeRequest + serverless wrappers
 // ---------------------------------------------------------------------------

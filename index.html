@@ -105,6 +105,10 @@
 
       <section id="answerStage" class="panel answer-stage" hidden>
         <p class="prompt" id="promptText"></p>
+        <div class="aim">
+          <span class="aim-label">The Goose scores</span>
+          <div class="hits hits--small" id="aimHits"></div>
+        </div>
         <form id="answerForm" class="answer-form" autocomplete="off" novalidate>
           <input type="text" id="answerInput" class="answer-input" maxlength="80"
                  placeholder="a ___ of …" enterkeyhint="send" autocomplete="off"
@@ -158,6 +162,11 @@
         <div class="stamp-wrap"><span class="stamp" id="resultStamp" hidden></span></div>
         <p class="outcome" id="resultOutcome"></p>
 
+        <div class="alsoin" id="alsoIn" hidden>
+          <p class="alsoin-label">Also in there</p>
+          <ul class="alsoin-list" id="alsoInList"></ul>
+        </div>
+
         <figure class="result-img" id="resultImg" hidden>
           <div class="skeleton">🪿 painting…</div>
         </figure>
@@ -197,6 +206,10 @@
         <h2 class="panel-title" id="podiumTitle">Round 1 results</h2>
         <ol id="rankList" class="rank"></ol>
         <p class="podium-tally" id="podiumTally"></p>
+        <div class="alsoin" id="podiumAlsoIn" hidden>
+          <p class="alsoin-label">Also in there</p>
+          <ul class="alsoin-list" id="podiumAlsoInList"></ul>
+        </div>
         <figure class="result-img" id="podiumImg" hidden>
           <div class="skeleton">🪿 painting…</div>
         </figure>

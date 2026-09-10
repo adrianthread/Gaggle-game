@@ -645,6 +645,7 @@ function startApp() {
       judgeBtn.disabled = soloJudging;
       judgeBtn.textContent = soloJudging ? 'Judging…' : (mode === 'party' ? 'Lock in & pass →' : 'Judge it 🪿');
       $('judgingWrap').hidden = !soloJudging;
+      $('aimHits').innerHTML = hitsHtml([]); // all four dim: the goals, not a score
       $('drawAgainBtn').hidden = !(mode === 'free' && p === 'answer');
       $('skipBtn').hidden = !(mode === 'party' && p === 'answer');
     }
@@ -706,6 +707,7 @@ function startApp() {
     $('answerInput').value = '';
     $('answerError').hidden = true;
     ['resultConfetti', 'podiumConfetti'].forEach((id) => { $(id).innerHTML = ''; });
+    ['alsoIn', 'podiumAlsoIn'].forEach((id) => { $(id).hidden = true; });
     ['resultImg', 'podiumImg'].forEach((id) => {
       const fig = $(id);
       fig.hidden = true;
@@ -931,6 +933,21 @@ function startApp() {
     }).join('');
   }
 
+  // Revealed only after the round is decided. Server text, so textContent, never innerHTML.
+  function renderAlternatives(boxId, listId, alts) {
+    const list = $(listId);
+    list.innerHTML = '';
+    const clean = (Array.isArray(alts) ? alts : [])
+      .filter((a) => typeof a === 'string' && a.trim())
+      .slice(0, 2);
+    $(boxId).hidden = clean.length === 0;
+    for (const a of clean) {
+      const li = document.createElement('li');
+      li.textContent = a;
+      list.append(li);
+    }
+  }
+
   function loadImage(fig, url) {
     const rid = state.roundId;
     fig.classList.remove('loaded');
@@ -1056,6 +1073,7 @@ function startApp() {
             : 'Dead heat. The Goose is furious.';
         if (score >= 9 || (outcome === 'win' && diff >= 3)) confetti($('resultConfetti'));
       }, 1150);
+      later(() => renderAlternatives('alsoIn', 'alsoInList', data.alternatives), 1450);
     });
   }
 
@@ -1144,6 +1162,7 @@ function startApp() {
         }
       }, 200 + gap * i);
     });
+    later(() => renderAlternatives('podiumAlsoIn', 'podiumAlsoInList', data.alternatives), 400 + gap * rows.length);
   }
 
   function showChampion() {

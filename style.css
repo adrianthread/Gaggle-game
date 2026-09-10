@@ -405,6 +405,41 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 .prompt b { color: var(--accent); }
 .who-turn { color: var(--goose-dark); }
 
+/* The four things you're marked on, shown BEFORE you answer. You can't aim at a rubric
+   you only see after scoring. No spoiler: it says what counts, never what the answer is. */
+.aim { margin-bottom: 0.9rem; }
+.aim-label {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+.aim .hits { margin-top: 0; }
+
+/* "Also in there" — the near-misses, revealed only once the round is decided, so it
+   teaches where the joke was hiding without diluting the solve. */
+.alsoin {
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.alsoin-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+.alsoin-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.alsoin-list li { font-weight: 700; overflow-wrap: anywhere; }
+.alsoin-list li::before { content: '“'; }
+.alsoin-list li::after { content: '”'; }
+
 .answer-form { display: flex; flex-direction: column; gap: 0.6rem; }
 
 .answer-input {
