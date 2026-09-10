@@ -804,8 +804,9 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 /* ---- moods ---- */
 /* idle: pottering about, waiting for someone to play */
 .goose[data-mood='idle'] .goose-lean { animation: goose-bob 3.4s ease-in-out infinite; }
-/* ...but the 60vw background bird holds still: it's decoration, not a character beat */
-.watermark .goose-lean { animation: none; }
+/* ...but the 60vw background bird holds still: it's decoration, not a character beat.
+   Needs to out-specify .goose[data-mood='idle'] .goose-lean (0,3,0), hence the [data-mood]. */
+.watermark .goose[data-mood] .goose-lean { animation: none; }
 
 /* watching: cards are down, head cocked */
 .goose[data-mood='watching'] .goose-neck { transform: rotate(5deg); }
