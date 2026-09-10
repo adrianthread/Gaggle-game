@@ -28,6 +28,8 @@ const NOUN_DECKS = [
   { key: 'mythical', label: 'Mythical', path: '/decks/nouns/mythical.json' },
 ];
 const SCENARIO_PATH = '/decks/scenarios/physical-settings.json';
+const DIFFICULTY_PATH = '/decks/difficulty.json';
+const DIFFICULTIES = ['easy', 'mixed', 'hard'];
 
 const STORAGE = {
   daily: 'gaggle.daily',
@@ -36,6 +38,7 @@ const STORAGE = {
   stats: 'gaggle.stats',
   decks: 'gaggle.decks',
   spicy: 'gaggle.spicy',
+  difficulty: 'gaggle.difficulty',
 };
 
 const HITS = [
@@ -274,6 +277,31 @@ function dedupeNames(names) {
     });
 }
 
+// Cards not listed in difficulty.json are "medium" and only ever appear in a mixed draw.
+// `tier` of null means "anything goes".
+function matchesTier(name, tier, tiers) {
+  if (!tier) return true;
+  const list = tiers && tiers[tier];
+  if (!list) return false;
+  return typeof list.has === 'function' ? list.has(name) : list.indexOf(name) !== -1;
+}
+
+// A locked difficulty is honoured every round. "Mixed" ramps instead: round one is always
+// a gimme so you're laughing before you're thinking, and the last round bares its teeth.
+function tierForRound(difficulty, mode, round) {
+  if (difficulty === 'easy') return 'easy';
+  if (difficulty === 'hard') return 'hard';
+  if (mode === 'free') return round <= 2 ? 'easy' : (round >= FREE_MAX ? 'hard' : null);
+  if (mode === 'party') return round <= 1 ? 'easy' : (round >= PARTY_ROUNDS ? 'hard' : null);
+  return null;
+}
+
+function diffHintText(difficulty) {
+  if (difficulty === 'easy') return 'Cards that hand you the joke. Good for warming up.';
+  if (difficulty === 'hard') return 'Awkward pairings that give you nothing. Earn it.';
+  return 'Round one eases you in; the last round bites. The daily is the same for everyone either way.';
+}
+
 function answerPlaceholder(noun) {
   return `a ___ of ${String(noun || '').toLowerCase()}`;
 }
@@ -347,12 +375,16 @@ function startApp() {
       return list.length ? list : valid;
     })(),
     spicy: load(STORAGE.spicy, false) === true,
+    difficulty: (() => { const d = load(STORAGE.difficulty, 'mixed'); return DIFFICULTIES.includes(d) ? d : 'mixed'; })(),
     name: (() => { const n = load(STORAGE.name, ''); return typeof n === 'string' ? n.slice(0, 24) : ''; })(),
   };
   const playerName = () => settings.name.trim() || 'You';
 
   /* ---- decks ---- */
-  const decks = { nouns: {}, scenarios: [], loaded: false, failed: false };
+  const decks = {
+    nouns: {}, scenarios: [], loaded: false, failed: false,
+    tiers: { nouns: { easy: new Set(), hard: new Set() }, scenarios: { easy: new Set(), hard: new Set() } },
+  };
 
   async function fetchDeck(path) {
     const r = await fetch(path);
@@ -373,6 +405,20 @@ function startApp() {
       const total = combinedNouns(decks.nouns).length;
       if (!total || !decks.scenarios.length) throw new Error('empty decks');
       decks.loaded = true;
+      // Difficulty tiers are a bonus, not a dependency: if this file is missing or malformed
+      // every card stays "medium" and the draw quietly falls back to the whole deck.
+      try {
+        const r = await fetch(DIFFICULTY_PATH);
+        if (r.ok) {
+          const t = await r.json();
+          for (const kind of ['nouns', 'scenarios']) {
+            for (const tier of ['easy', 'hard']) {
+              const list = t && t[kind] && t[kind][tier];
+              if (Array.isArray(list)) decks.tiers[kind][tier] = new Set(list.filter((s) => typeof s === 'string'));
+            }
+          }
+        }
+      } catch (e) { console.warn('difficulty tiers unavailable', e); }
     } catch (e) {
       console.error(e);
       decks.failed = true;
@@ -387,15 +433,25 @@ function startApp() {
     }
   }
 
-  function drawPool() {
+  const MIN_POOL = 5; // below this a tier repeats itself, so widen instead
+
+  function drawPool(tier) {
     let keys = NOUN_DECKS.filter((d) => settings.decks.includes(d.key)).map((d) => d.key);
     if (!keys.some((k) => (decks.nouns[k] || []).length)) keys = NOUN_DECKS.map((d) => d.key);
     const pool = [];
     for (const d of NOUN_DECKS) {
       if (!keys.includes(d.key)) continue;
-      for (const noun of decks.nouns[d.key] || []) pool.push({ noun, label: d.label });
+      for (const noun of decks.nouns[d.key] || []) {
+        if (matchesTier(noun, tier, decks.tiers.nouns)) pool.push({ noun, label: d.label });
+      }
     }
-    return pool;
+    // A tier can come up short when few decks are enabled; never strand the player.
+    return pool.length >= MIN_POOL ? pool : (tier ? drawPool(null) : pool);
+  }
+
+  function scenarioPool(tier) {
+    const pool = decks.scenarios.filter((s) => matchesTier(s, tier, decks.tiers.scenarios));
+    return pool.length >= MIN_POOL ? pool : decks.scenarios;
   }
 
   function deckLabelOf(noun) {
@@ -662,9 +718,13 @@ function startApp() {
       cards = pickDaily(state.dailyIndex, combinedNouns(decks.nouns), decks.scenarios);
       tags = [deckLabelOf(cards[0]), 'Scenario'];
     } else {
-      const pool = drawPool();
+      // The daily deliberately ignores difficulty above: everyone must get the same pair.
+      const round = state.mode === 'free' ? (state.free ? state.free.round : 1) : state.round;
+      const tier = tierForRound(settings.difficulty, state.mode, round);
+      const pool = drawPool(tier);
+      const scns = scenarioPool(tier);
       const pick = pool[Math.floor(Math.random() * pool.length)];
-      const scn = decks.scenarios[Math.floor(Math.random() * decks.scenarios.length)];
+      const scn = scns[Math.floor(Math.random() * scns.length)];
       cards = [pick.noun, scn];
       tags = [pick.label, 'Scenario'];
     }
@@ -1306,6 +1366,10 @@ function startApp() {
       label.append(cb, span);
       box.append(label);
     });
+    $('diffToggles').querySelectorAll('input[name="difficulty"]').forEach((r) => {
+      r.checked = r.value === settings.difficulty;
+    });
+    $('diffHint').textContent = diffHintText(settings.difficulty);
     $('spicyToggle').checked = settings.spicy;
     $('soloName').value = settings.name;
   }
@@ -1317,6 +1381,13 @@ function startApp() {
     $('freeBtn').addEventListener('click', startFree);
     $('partyBtn').addEventListener('click', startSetup);
 
+    $('diffToggles').addEventListener('change', (e) => {
+      const v = e.target && e.target.value;
+      if (!DIFFICULTIES.includes(v)) return;
+      settings.difficulty = v;
+      save(STORAGE.difficulty, v);
+      $('diffHint').textContent = diffHintText(v);
+    });
     $('spicyToggle').addEventListener('change', (e) => { settings.spicy = e.target.checked; save(STORAGE.spicy, settings.spicy); });
     $('soloName').addEventListener('input', (e) => { settings.name = e.target.value.slice(0, 24); save(STORAGE.name, settings.name); });
 
@@ -1423,6 +1494,7 @@ if (typeof module !== 'undefined' && module.exports) {
     EPOCH_UTC, NOUN_DECKS, SCENARIO_PATH, STORAGE, HITS, BADGES, GOOSE_NAME,
     PARTY_ROUNDS, FREE_TARGET, FREE_MAX,
     mulberry32, dayIndexFor, combinedNouns, pickDaily, msUntilMidnight, formatCountdown,
+    DIFFICULTIES, matchesTier, tierForRound, diffHintText,
     clampScore, bandFor, bandHeadline, badgeInfo, outcomeOf, moodFor, scoreBar, cardsTitle, medal,
     gooseLine, dailyShareText, roundShareText, matchShareText, partyRoundShareText, partyShareText,
     rankEntries, rankTotals, dedupeNames, answerPlaceholder, nextFreeRound,
