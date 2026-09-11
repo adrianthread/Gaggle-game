@@ -292,7 +292,8 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .tally:empty { display: none; }
 
-.draw-stage { display: flex; justify-content: center; padding: 1.5rem 0; }
+.draw-stage { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem 0; }
+.draw-caption { color: var(--ink); opacity: 0.8; font-weight: 600; font-size: 0.9rem; text-align: center; }
 
 /* ---------- cards ---------- */
 .cards {

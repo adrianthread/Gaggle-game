@@ -11,7 +11,7 @@ const path = require('node:path');
 const { createServer, loadDotEnv, lanUrls } = require('../server');
 const {
   judge, imageUrl, validateRequest, handleJudgeRequest, JudgeError, LIMITS,
-  buildPrompts, extractJson, distinctScores, HITS, BADGES, DEFAULT_MODEL,
+  buildPrompts, extractJson, distinctScores, HITS, BADGES, DEFAULT_MODEL, GOOSE_TARGETS, SYSTEM_PROMPT,
 } = require('../lib/judge');
 
 const FENCE = '`'.repeat(3);
@@ -498,6 +498,32 @@ test('alternatives are capped at 2, deduped, and never echo the bot or a player'
   }
   // and the prompt actually asks for them
   assert.match(buildPrompts(input).user, /alternatives/);
+});
+
+test('level sets how hard the Goose tries, and is validated', async () => {
+  // The win-rate dial: an easy round must not pit the player against the bot's best work.
+  assert.deepEqual(Object.keys(GOOSE_TARGETS), ['easy', 'medium', 'hard']);
+  for (const [level, band] of Object.entries(GOOSE_TARGETS)) {
+    for (const answers of [[{ name: 'A', answer: 'x' }], [{ name: 'A', answer: 'x' }, { name: 'B', answer: 'y' }]]) {
+      assert.match(buildPrompts({ cards: CARDS, answers, level }).user, new RegExp(`GOOSE TARGET: ${band}`), `${level}/${answers.length}p`);
+    }
+  }
+  assert.notEqual(GOOSE_TARGETS.easy, GOOSE_TARGETS.hard, 'the dial actually moves');
+  assert.equal(validateRequest({ cards: CARDS, answers: [{ answer: 'x' }], level: 'nope' }).level, 'medium', 'junk level falls back');
+  assert.equal(validateRequest({ cards: CARDS, answers: [{ answer: 'x' }] }).level, 'medium', 'absent level defaults');
+  // and it reaches the wire
+  let captured;
+  await judge({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }], spicy: false, level: 'easy' },
+    { mock: false, apiKey: 'k', fetch: async (_u, init) => { captured = JSON.parse(init.body); return reply(SINGLE_REPLY)(); } });
+  assert.match(captured.messages[0].content, /GOOSE TARGET: 5-6/);
+});
+
+test('rubric scores the bridge first and treats sound/image as bonuses', () => {
+  // The old shape gated 8+ behind 3 of 4 hits, which capped a clean short pun at 7.
+  assert.match(SYSTEM_PROMPT, /THEN ADD, to a maximum of 10/);
+  assert.match(SYSTEM_PROMPT, /Never mark an elegant short answer down for/);
+  assert.ok(!/\d hits -> \d/.test(SYSTEM_PROMPT), 'old hit-count band table is gone');
+  assert.match(SYSTEM_PROMPT, /GOOSE TARGET/, 'rival brief defers to the per-round target');
 });
 
 test('mock mode supplies alternatives so the reveal can be exercised without a key', async () => {

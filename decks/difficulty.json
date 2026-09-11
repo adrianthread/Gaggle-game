@@ -52,7 +52,6 @@
       "Pretzels",
       "Chillies",
       "Pickles",
-      "Prawns",
       "Oysters",
       "Beers",
       "Dragons",
@@ -60,7 +59,6 @@
       "Fairies",
       "Mermaids",
       "Trolls",
-      "Elves",
       "Werewolves",
       "Vampires",
       "Witches",
@@ -109,7 +107,6 @@
       "Divers",
       "Hurdlers",
       "Fencers",
-      "Rowers",
       "Curlers"
     ],
     "hard": [
@@ -117,7 +114,6 @@
       "Platypuses",
       "Chimpanzees",
       "Meerkats",
-      "Ibises",
       "Cane Toads",
       "Wombats",
       "Emus",
@@ -128,7 +124,6 @@
       "Capsicums",
       "Zucchinis",
       "Radishes",
-      "Cauliflowers",
       "Asparagus",
       "Croissants",
       "Dumplings",
@@ -185,15 +180,16 @@
       "AFL Players",
       "Ball Kids",
       "Lawn Bowlers",
-      "Esports Gamers"
+      "Esports Gamers",
+      "Elves",
+      "Rowers",
+      "Prawns"
     ]
   },
   "scenarios": {
     "easy": [
-      "At a Wedding Ceremony",
       "At a Funeral Service",
       "At a Birthday Party",
-      "At a Graduation Ceremony",
       "On the Red Carpet",
       "At a Buck's Party",
       "At an Art Exhibition",
@@ -223,7 +219,6 @@
       "At the Opera",
       "In a Cooking Class",
       "At a Wine Tasting",
-      "At a Family Reunion",
       "At Christmas Dinner",
       "In a Zombie Film",
       "At a Bunnings Sausage Sizzle",
@@ -241,14 +236,11 @@
       "At a Beach Party",
       "In Detention",
       "At an Acupuncturist",
-      "At a Stadium",
       "At a Roadside Motel",
       "At a Beach Resort",
       "At a Mountain Cabin",
       "At a Tree House",
       "In a Paddling Pool",
-      "At a Rollerskating Rink",
-      "At a Trampoline Park",
       "At a Water Park",
       "At a Reptile Park",
       "At a High School Reunion",
@@ -257,7 +249,6 @@
       "In Purgatory",
       "Stranded on a Desert Island",
       "In an Action Film",
-      "In a Rom-Com",
       "At a Silent Disco",
       "In Witness Protection",
       "At an Open-Mic Night",
@@ -271,7 +262,10 @@
       "In a Sauna",
       "At a Toga Party",
       "In a Hot Air Balloon",
-      "At a School Formal"
+      "At a School Formal",
+      "At a Wedding Ceremony",
+      "At a Family Reunion",
+      "At a Graduation Ceremony"
     ]
   }
 }

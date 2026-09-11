@@ -39,6 +39,7 @@ const STORAGE = {
   decks: 'gaggle.decks',
   spicy: 'gaggle.spicy',
   difficulty: 'gaggle.difficulty',
+  skipWarmup: 'gaggle.skipWarmup',
 };
 
 const HITS = [
@@ -500,6 +501,7 @@ function startApp() {
     roundId: 0,
     setupNames: [],
     dailyIndex: null, // the Gaggle # the current daily cards belong to (snapshotted at deal time)
+    level: 'medium',  // this round's card tier; also sets how hard the Goose tries
   };
 
   let timers = [];
@@ -511,7 +513,12 @@ function startApp() {
   }
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 
-  function freshFree() { return { you: 0, goose: 0, draws: 0, round: 1, over: false, rounds: [] }; }
+  // Improv's answer to the cold start: you never go on stage cold, you do an exercise first.
+  // One unscored gimme before the match, skippable, and the skip is remembered.
+  function freshFree() {
+    return { you: 0, goose: 0, draws: 0, round: 1, over: false, rounds: [], warmup: load(STORAGE.skipWarmup, false) !== true };
+  }
+  function warmingUp() { return state.mode === 'free' && !!(state.free && state.free.warmup); }
   function freshParty(players) {
     const totals = Object.create(null); // names are keys; "__proto__" must not hit the prototype
     players.forEach((p) => { totals[p] = 0; });
@@ -589,6 +596,7 @@ function startApp() {
     if (state.mode === 'daily') return `Gaggle #${state.dailyIndex == null ? dayIndexFor() : state.dailyIndex}`;
     if (state.mode === 'free' && state.free) {
       const f = state.free;
+      if (f.warmup) return "Warm-up · doesn't count";
       return `You ${f.you} – 🪿 ${f.goose} · Round ${Math.min(f.round, FREE_MAX)}/${FREE_MAX}`;
     }
     if (state.mode === 'party' && state.party) {
@@ -617,8 +625,10 @@ function startApp() {
     const drawBtn = $('drawBtn');
     drawBtn.disabled = !decks.loaded;
     drawBtn.textContent = decks.loaded
-      ? (mode === 'daily' ? "Deal today's cards" : (mode === 'party' ? 'Deal the cards' : 'Draw cards'))
+      ? (warmingUp() ? 'Deal a warm-up' : mode === 'daily' ? "Deal today's cards" : (mode === 'party' ? 'Deal the cards' : 'Draw cards'))
       : (decks.failed ? 'Decks missing' : 'Shuffling…');
+    $('drawCaption').hidden = !(p === 'draw' && warmingUp());
+    $('skipWarmupBtn').hidden = !(p === 'draw' && warmingUp() && decks.loaded);
 
     const soloJudging = p === 'judging' && mode !== 'party';
     $('answerStage').hidden = !(p === 'answer' || soloJudging);
@@ -740,12 +750,15 @@ function startApp() {
     let tags;
     if (state.mode === 'daily') {
       state.dailyIndex = dayIndexFor();
+      // The daily rolls its own tier off the date; the Goose should try as hard as the cards are.
+      state.level = dailyTier(mulberry32(state.dailyIndex)());
       cards = pickDaily(state.dailyIndex, combinedNouns(decks.nouns), decks.scenarios, decks.tiers);
       tags = [deckLabelOf(cards[0]), 'Scenario'];
     } else {
       // The daily deliberately ignores difficulty above: everyone must get the same pair.
       const round = state.mode === 'free' ? (state.free ? state.free.round : 1) : state.round;
-      const tier = tierForRound(settings.difficulty, state.mode, round);
+      const tier = warmingUp() ? 'easy' : tierForRound(settings.difficulty, state.mode, round);
+      state.level = tier || 'medium';
       const pool = drawPool(tier);
       const scns = scenarioPool(tier);
       const pick = pool[Math.floor(Math.random() * pool.length)];
@@ -826,7 +839,9 @@ function startApp() {
     setMood('resultGoose', 'deliberating');
     render();
     try {
-      const data = await fetchJudge({ cards: state.cards, answers: state.answers, spicy: settings.spicy });
+      const data = await fetchJudge({
+        cards: state.cards, answers: state.answers, spicy: settings.spicy, level: state.level || 'medium',
+      });
       if (rid !== state.roundId) return;
       state.result = data;
       if (state.mode === 'party') {
@@ -978,7 +993,10 @@ function startApp() {
     const panel = $('result');
 
     // bookkeeping first so tallies are right
-    if (state.mode === 'free') {
+    const wasWarmup = warmingUp();
+    if (state.mode === 'free' && wasWarmup) {
+      state.free.warmup = false; // consumed: judged for the feedback, but nothing counts
+    } else if (state.mode === 'free') {
       state.free = nextFreeRound(state.free, outcome);
       state.free.rounds.push({ cards: state.cards, answer: r.answer || '', score, botScore, outcome });
       const st = loadObj(STORAGE.stats) || { wins: 0, losses: 0, draws: 0, best: 0 };
@@ -1038,7 +1056,12 @@ function startApp() {
     // actions
     const primary = $('resultPrimaryBtn');
     const secondary = $('resultSecondaryBtn');
-    if (state.mode === 'free') {
+    if (state.mode === 'free' && wasWarmup) {
+      primary.textContent = 'Start the match →';
+      primary.dataset.action = 'next';
+      secondary.textContent = 'Home';
+      secondary.dataset.action = 'home';
+    } else if (state.mode === 'free') {
       primary.textContent = state.free.over ? 'Match result →' : 'Next round →';
       primary.dataset.action = state.free.over ? 'match' : 'next';
       secondary.textContent = 'Share';
@@ -1066,11 +1089,13 @@ function startApp() {
         panel.classList.add(`is-${outcome}`);
         setMood('resultGoose', moodFor(score, botScore));
         const diff = Math.abs(score - botScore);
-        outcomeEl.textContent = outcome === 'win'
-          ? `You beat the Goose by ${diff}!`
-          : outcome === 'lose'
-            ? `The Goose wins by ${diff}. honk.`
-            : 'Dead heat. The Goose is furious.';
+        outcomeEl.textContent = wasWarmup
+          ? 'That was the warm-up — nothing counted. Match starts now.'
+          : outcome === 'win'
+            ? `You beat the Goose by ${diff}!`
+            : outcome === 'lose'
+              ? `The Goose wins by ${diff}. honk.`
+              : 'Dead heat. The Goose is furious.';
         if (score >= 9 || (outcome === 'win' && diff >= 3)) confetti($('resultConfetti'));
       }, 1150);
       later(() => renderAlternatives('alsoIn', 'alsoInList', data.alternatives), 1450);
@@ -1474,7 +1499,15 @@ function startApp() {
     $('matchShareBtn').addEventListener('click', () => {
       share(matchShareText({ you: state.free.you, goose: state.free.goose, best: bestFreeLine(), url: shareUrl() }));
     });
-    $('rematchBtn').addEventListener('click', () => { startFree(); drawCards(); });
+    // A rematch means you're already warm.
+    $('rematchBtn').addEventListener('click', () => { startFree(); if (state.free) state.free.warmup = false; drawCards(); });
+    $('skipWarmupBtn').addEventListener('click', () => {
+      if (!warmingUp()) return;
+      state.free.warmup = false;
+      save(STORAGE.skipWarmup, true); // remembered, so it's asked once not every match
+      render();
+      drawCards();
+    });
 
     $('podiumNextBtn').addEventListener('click', () => {
       if (state.phase !== 'podium') return; // double-tap would bump the round counter twice
