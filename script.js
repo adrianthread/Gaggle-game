@@ -270,7 +270,9 @@ function rankEntries(results, bot) {
   if (bot && bot.answer) {
     entries.push({
       name: GOOSE_NAME, answer: bot.answer, score: clampScore(bot.score),
-      verdict: bandHeadline(clampScore(bot.score)), comment: '', hits: [], badge: '', goose: true,
+      verdict: bandHeadline(clampScore(bot.score)),
+      comment: typeof bot.note === 'string' ? bot.note : '', // the Goose's gloss on its own entry
+      hits: [], badge: '', goose: true,
     });
   }
   // Stable sort: higher score first; players before the Goose on ties.
@@ -1044,6 +1046,7 @@ function startApp() {
     const gooseRow = $('gooseRow');
     gooseRow.classList.add('is-hidden');
     $('gooseAnswer').textContent = bot.answer || 'a silence of geese';
+    $('gooseNote').textContent = typeof bot.note === 'string' ? bot.note : '';
     $('gooseScore').textContent = String(botScore);
     $('gooseBar').style.setProperty('--pct', `${botScore * 10}%`);
 

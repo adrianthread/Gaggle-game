@@ -370,7 +370,7 @@ test('judge() single: request shape (model, temperature, single prompt) and norm
   assert.deepEqual(out.results[0].hits, ['pun', 'image']);
   assert.equal(out.results[0].score, 6);
   assert.equal(out.results[0].verdict, 'Dressed For The Wrong Room');
-  assert.deepEqual(out.bot, { answer: 'a pallbearing of penguins', score: 8 });
+  assert.deepEqual(out.bot, { answer: 'a pallbearing of penguins', score: 8, note: '' });
   // bot scored higher -> the round's picture is the bot's idea, from image_idea
   assert.match(decodeURIComponent(out.imageUrl), /penguins in tuxedos carrying a coffin/);
 });
@@ -465,7 +465,7 @@ test('judge() real-shaped Anthropic reply: multiple content blocks joined, usage
   const t0 = Date.now();
   const out = await judge(single, { mock: false, apiKey: 'k', fetch: realShaped, timeoutMs: 5000 });
   assert.equal(out.results[0].score, 6);
-  assert.deepEqual(out.bot, { answer: 'a pallbearing of penguins', score: 8 });
+  assert.deepEqual(out.bot, { answer: 'a pallbearing of penguins', score: 8, note: '' });
   assert.ok(Date.now() - t0 < 1000, 'resolved immediately; the abort timer did not hold the call');
   await assert.rejects(judge(single, { mock: false, apiKey: 'k', fetch: reply('[{"score": 9}]') }), e => e.status === 502);
   await assert.rejects(judge(single, { mock: false, apiKey: 'k', fetch: reply('42') }), e => e.status === 502);
@@ -516,6 +516,36 @@ test('level sets how hard the Goose tries, and is validated', async () => {
   await judge({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }], spicy: false, level: 'easy' },
     { mock: false, apiKey: 'k', fetch: async (_u, init) => { captured = JSON.parse(init.body); return reply(SINGLE_REPLY)(); } });
   assert.match(captured.messages[0].content, /GOOSE TARGET: 5-6/);
+});
+
+test('the judge is told the answer is a blank-fill, and forbidden from inventing faults', () => {
+  // Root cause of two real misjudgements: the UI asks the player to fill "a ___ of <noun>",
+  // so a bare word like "shout" reached the judge as a naked fragment and got scored 1 with
+  // a fabricated reason ("you just said the noun" - on a Sirens card).
+  const user = buildPrompts({ cards: ['Sirens', 'At a Bingo Hall'], answers: [{ name: 'A', answer: 'shout' }] }).user;
+  assert.match(user, /the player types into the blank in "a ___ of Sirens"/);
+  assert.match(user, /read "shout" as "a shout of Sirens"/);
+  assert.match(user, /A one-word answer is a normal answer, never lazy by itself/);
+  // the party prompt gets the same frame
+  assert.match(buildPrompts({ cards: ['Sirens', 'At a Bingo Hall'], answers: [{ name: 'A', answer: 'x' }, { name: 'B', answer: 'y' }] }).user,
+    /the player types into the blank/);
+  assert.match(SYSTEM_PROMPT, /NEVER accuse the player of something they did not do/);
+  assert.match(SYSTEM_PROMPT, /repeated back word for word/, 'band 1 no longer catches any short answer');
+});
+
+test('the Goose must be gettable and show its working', () => {
+  assert.match(SYSTEM_PROMPT, /LAND WITHOUT SPECIALIST KNOWLEDGE/);
+  assert.match(SYSTEM_PROMPT, /a B-9 of sirens/, 'the real failure is named as the example');
+  assert.match(buildPrompts({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }] }).user, /bot_note: at most 12 words/);
+  return judge({ cards: CARDS, answers: [{ name: 'A', answer: 'a wake of penguins' }], spicy: false },
+    { mock: false, apiKey: 'k', fetch: reply({ ...SINGLE_REPLY, bot_note: 'Pallbearers carry coffins; penguins waddle in pairs.' }) })
+    .then((out) => {
+      assert.equal(out.bot.note, 'Pallbearers carry coffins; penguins waddle in pairs.');
+      // and it reaches the podium via the goose's rank row
+      return judge({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }], spicy: false },
+        { mock: false, apiKey: 'k', fetch: reply({ ...SINGLE_REPLY, bot_note: 42 }) })
+        .then((bad) => assert.equal(bad.bot.note, '', 'non-string note degrades to empty'));
+    });
 });
 
 test('rubric scores the bridge first and treats sound/image as bonuses', () => {

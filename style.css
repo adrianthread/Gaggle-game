@@ -586,6 +586,16 @@ button:disabled { cursor: not-allowed; opacity: 0.6; }
   transform-origin: top;
 }
 .score-row--goose.is-hidden { opacity: 0; transform: rotateX(90deg); }
+/* the Goose shows its working: an answer nobody can decode is not a good answer */
+.goose-note {
+  margin-top: 0.4rem;
+  padding: 0 0.9rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+.goose-note:empty { display: none; }
 
 .stamp-wrap { display: flex; justify-content: center; margin-top: 1rem; min-height: 0; }
 .stamp {
