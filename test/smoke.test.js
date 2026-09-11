@@ -541,6 +541,17 @@ test('the Goose must be gettable and show its working', () => {
     { mock: false, apiKey: 'k', fetch: reply({ ...SINGLE_REPLY, bot_note: 'Pallbearers carry coffins; penguins waddle in pairs.' }) })
     .then((out) => {
       assert.equal(out.bot.note, 'Pallbearers carry coffins; penguins waddle in pairs.');
+      // an over-long note is cut at a word boundary, never mid-word
+      return judge({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }], spicy: false }, { mock: false, apiKey: 'k',
+        fetch: reply({ ...SINGLE_REPLY, bot_note: 'Wizards strut down the runway like models on a catwalk; also a real collective noun for cats and a genuinely excessive amount of extra words' }) })
+        .then((long) => {
+          assert.ok(long.bot.note.length <= 131, 'note is capped: ' + long.bot.note.length);
+          assert.match(long.bot.note, /…$/, 'ellipsis marks the cut');
+          assert.ok(!/\s…$/.test(long.bot.note), 'no dangling space before the ellipsis');
+          const lastWord = long.bot.note.replace(/…$/, '').split(' ').pop();
+          assert.ok('Wizards strut down the runway like models on a catwalk; also a real collective noun for cats and a genuinely excessive amount of extra words'.split(' ').includes(lastWord),
+            `cut on a word boundary, got "...${lastWord}"`);
+        });
       // and it reaches the podium via the goose's rank row
       return judge({ cards: CARDS, answers: [{ name: 'A', answer: 'x' }], spicy: false },
         { mock: false, apiKey: 'k', fetch: reply({ ...SINGLE_REPLY, bot_note: 42 }) })

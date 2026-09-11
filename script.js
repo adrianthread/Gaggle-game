@@ -911,20 +911,37 @@ function startApp() {
       const start = performance.now();
       const dur = ms || 700;
       const rid = state.roundId;
+      let done = false;
+      // rAF can stall entirely - a backgrounded tab, iOS scroll momentum - and if it does the
+      // digit freezes wherever it got to. Showing "1" for a 7 is the worst bug this screen has,
+      // so the final value is guaranteed by a timer rather than by the animation completing.
+      const finish = () => {
+        if (done) return;
+        done = true;
+        if (rid === state.roundId) el.textContent = String(target);
+        resolve();
+      };
       const tick = (now) => {
-        if (rid !== state.roundId) return; // round abandoned mid-count: stop writing stale digits
+        if (done || rid !== state.roundId) return; // round abandoned mid-count: stop writing stale digits
         const t = Math.min(1, (now - start) / dur);
         const v = 1 - Math.pow(1 - t, 3);
         el.textContent = String(Math.round(v * target));
-        if (t < 1) requestAnimationFrame(tick); else resolve();
+        if (t < 1) requestAnimationFrame(tick); else finish();
       };
       requestAnimationFrame(tick);
+      timers.push(setTimeout(finish, dur + 400));
     });
   }
 
+  // Two frames from 0% so the width transition actually plays. Same rAF caveat as countUp:
+  // if the frames never come the bar must still end up showing the score, not empty.
   function setBar(el, score) {
+    const pct = `${score * 10}%`;
     el.style.setProperty('--pct', '0%');
-    requestAnimationFrame(() => requestAnimationFrame(() => el.style.setProperty('--pct', `${score * 10}%`)));
+    let done = false;
+    const set = () => { if (done) return; done = true; el.style.setProperty('--pct', pct); };
+    requestAnimationFrame(() => requestAnimationFrame(set));
+    timers.push(setTimeout(set, 150));
   }
 
   function confetti(container) {
